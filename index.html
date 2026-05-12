@@ -503,7 +503,10 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
 
             let principalCorrigido = base * idx.cor;
             let valJurosMora = principalCorrigido * (idx.jur / 100);
-            let valSelic = principalCorrigido * (idx.sel / 100);
+            
+            // Nova regra da SELIC ajustada conforme instrução:
+            let baseSelic = (idx.jur > 0) ? (principalCorrigido + valJurosMora) : principalCorrigido;
+            let valSelic = baseSelic * (idx.sel / 100);
             
             r.principalCorrigido = principalCorrigido;
             r.valJurosMora = valJurosMora;
