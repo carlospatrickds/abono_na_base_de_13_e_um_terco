@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expertise Judicial - Abono de Permanência</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #34495e;
+            --info: #2980b9;
+            --danger: #e74c3c;
+            --bg: #f8f9fa;
+            --border: #dcdde1;
+            --salmon-custom: #FFC599; /* Cor exata solicitada */
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: #2f3640;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1350px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Links e Ações no Topo */
+        .top-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 8px; align-items: center; }
+        .top-actions a { text-decoration: none; }
+        
+        h1 { color: var(--primary); font-size: 1.8em; border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 30px; }
+        h2 { color: var(--accent); font-size: 1.2em; margin-top: 35px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 0.85em; color: var(--accent); }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95em; box-sizing: border-box; }
+
+        .tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border); margin-bottom: 25px; padding-top: 20px;}
+        .tab-btn { background: transparent; border: none; font-size: 1.05em; font-weight: bold; color: #7f8c8d; cursor: pointer; padding: 12px 25px; border-radius: 8px 8px 0 0; transition: 0.3s; }
+        .tab-btn.active { background: var(--info); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th { background-color: var(--primary); color: white; padding: 12px 8px; border: 1px solid #444; }
+        td { padding: 10px 8px; border: 1px solid var(--border); text-align: right; }
+        
+        .alert-value { color: var(--danger) !important; font-weight: bold; background-color: #fff5f5; }
+        .disabled-row { opacity: 0.4; background-color: #f2f2f2; text-decoration: line-through; }
+        .editable-active { background-color: #fffbe6; border: 1px dashed #f39c12 !important; cursor: text; }
+        
+        .col-pago { display: none; background-color: #fcf3cf; }
+
+        .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .btn-primary { background-color: var(--info); color: white; }
+        .btn-secondary { background-color: var(--accent); color: white; }
+        
+        /* Ajuste do botão personalizado para ter contraste */
+        .btn-salmon { background-color: var(--salmon-custom); color: #2c3e50; border: 1px solid #e0a579; font-weight: 700; }
+        
+        .btn-outline { background-color: transparent; border: 1.5px solid var(--border); color: var(--accent); }
+        .btn-outline.active { background-color: #f39c12; color: white; border-color: #f39c12; }
+        .btn-link { background-color: #e8f4f8; color: var(--info); border: 1px solid var(--info); font-size: 0.8em; }
+
+        /* Estilo do Resumo Final na tela */
+        .summary-card { background: var(--bg); padding: 25px; border-radius: 10px; margin-top: 30px; border: 1px solid var(--border); }
+        .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e1e1e1; }
+        .sum-row.header-row { background:#e2e8f0; font-weight:bold; padding: 10px 12px; margin-top:15px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 1em;}
+        .sum-row.sub { padding-left: 25px; font-size: 0.88em; border-bottom: 1px dashed #ccc; color: #444; }
+        .sum-row.sub:last-of-type { border-bottom: none; }
+        .total-geral { border: none; font-weight: bold; font-size: 1.25em; color: var(--primary); padding: 15px 0; border-bottom: 2px solid #ccc; }
+
+        #pdf-header-print { display: none; }
+        .footer-gen { margin-top: 40px; font-size: 0.85em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; }
+
+        /* Estilo do Rodapé Fixo apenas para a Impressão */
+        .print-footer { display: none; }
+
+        /* REGRAS EXCLUSIVAS PARA IMPRESSÃO / PDF */
+        @media print {
+            .no-print, .top-actions, .tabs { display: none !important; }
+            body { padding: 0; background: white; font-size: 11pt; } 
+            .container { box-shadow: none; border: none; width: 100%; padding: 0; margin-bottom: 30px; }
+            #pdf-header-print { display: block; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            
+            .tab-content { display: block !important; opacity: 1 !important; }
+            .page-break { page-break-before: always; padding-top: 20px; }
+            
+            table { font-size: 9pt; } 
+
+            /* Inserção do Rodapé em Cinza Médio */
+            .print-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 9pt;
+                color: #7f8c8d;
+                background-color: white;
+                padding-top: 5px;
+                border-top: 1px solid #eee;
+            }
+
+            /* 1. TEMA SISTEMA (Azul Petróleo, Cinza Claro e Branco) */
+            .theme-sistema th { background-color: #174A67 !important; color: #fff !important; -webkit-print-color-adjust: exact; border: 1px solid #10364c !important; } 
+            .theme-sistema .header-row { background-color: #eaf2f8 !important; border-color: #174A67 !important; -webkit-print-color-adjust: exact; }
+            .theme-sistema tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; } 
+            .theme-sistema tr:nth-child(even) { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            .theme-sistema td { border: 1px solid #ccc !important; }
+
+            /* 2. TEMA PDF CLÁSSICO (Barras de Sistema Cinza Escuro/Médio e 2 Tons de Cinza nas Linhas) */
+            .theme-classic th { background-color: #bdc3c7 !important; color: #000 !important; border: 1px solid #7f8c8d !important; -webkit-print-color-adjust: exact; } 
+            .theme-classic .header-row { background-color: #d0d3d4 !important; border-color: #7f8c8d !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-classic tr:nth-child(odd) { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; } /* Cinza Claro */
+            .theme-classic tr:nth-child(even) { background-color: #e6e6e6 !important; -webkit-print-color-adjust: exact; } /* Cinza tom acima */
+            .theme-classic td { border: 1px solid #aeb6bf !important; }
+
+            /* 3. TEMA PDF PERSONALIZADO (#FFC599) */
+            .theme-salmon th { background-color: var(--salmon-custom) !important; color: #000 !important; border: 1px solid #dca377 !important; -webkit-print-color-adjust: exact; } 
+            .theme-salmon .header-row { background-color: #ffecd9 !important; border-color: var(--salmon-custom) !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon tr:nth-child(even) { background-color: #fffaf5 !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon td { border: 1px solid #f0cdb4 !important; }
+
+            .disabled-row { display: none; }
+        }
+    </style>
+</head>
+<body id="pageBody">
+
+<div class="container">
+    <div class="top-actions no-print">
+        <a href="https://pss-progressivo.streamlit.app/" target="_blank" class="btn btn-link">🧮 Cálculo PSS</a>
+        <a href="https://pss-progressivo.streamlit.app/" target="_blank" class="btn btn-link">📋 Extração Fichas</a>
+        <div style="width: 20px;"></div>
+        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="salvarProjeto()">💾 Salvar</button>
+        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="document.getElementById('fileInput').click()">📂 Carregar</button>
+        <input type="file" id="fileInput" style="display:none" accept=".json" onchange="carregarProjeto(this)">
+    </div>
+
+    <h1>Cálculo de Reflexos: Abono de Permanência</h1>
+
+    <div id="pdf-header-print"><div id="print-content"></div></div>
+
+    <section class="no-print">
+        <div class="grid-input">
+            <div class="form-group"><label>Processo nº</label><input type="text" id="procNumero"></div>
+            <div class="form-group"><label>Classe</label><input type="text" id="procClasse" value="CUMPRIMENTO DE SENTENÇA"></div>
+        </div>
+        <div class="grid-input">
+            <div class="form-group"><label>Parte Autora</label><input type="text" id="procAutor"></div>
+            <div class="form-group"><label>Réu</label><input type="text" id="procReu"></div>
+        </div>
+        <div class="form-group">
+            <label>Assunto do Cálculo</label>
+            <textarea id="procAssunto" rows="2">Apuração dos reflexos decorrentes da inclusão da rubrica abono de permanência ec 41/03 na base de cálculo da Gratificação natalina (13º salário) e Adicional de 1/3 de férias.</textarea>
+        </div>
+    </section>
+
+    <section class="no-print">
+        <div class="grid-input">
+            <div class="form-group"><label>Data Ajuizamento</label><input type="date" id="dataAjuizamento" onchange="geraParams()"></div>
+            <div class="form-group">
+                <label>Data Citação (mm/aaaa)</label>
+                <input type="text" id="dataCitacao" placeholder="06/2022" maxlength="7" oninput="mascaraData(this); geraParams()">
+            </div>
+            <div class="form-group">
+                <label>Prescrição Quinquenal</label>
+                <select id="prescricaoToggle" onchange="geraParams()">
+                    <option value="sim">Sim (5 anos)</option>
+                    <option value="nao">Não Aplicar</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid-input">
+            <div class="form-group"><label>Honorários Contratuais (%)</label><input type="number" id="honContratuais" value="20" onchange="calcularTotaisTodasAbas()"></div>
+            <div class="form-group"><label>Honorários Sucumbência (%)</label><input type="number" id="honSucumbencia" value="10" onchange="calcularTotaisTodasAbas()"></div>
+        </div>
+    </section>
+
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="openTab('tab1', this)">1. Apuração Histórica</button>
+        <button class="tab-btn" onclick="openTab('tab2', this)">2. Atualização CJF (EC 113)</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <section class="no-print">
+            <h2>Importação da Ficha Financeira</h2>
+            <textarea id="csvInput" rows="3" placeholder="Cole aqui os dados da ficha financeira..."></textarea>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick="processar()">🚀 Processar Histórico</button>
+            </div>
+        </section>
+
+        <section>
+            <div class="no-print" style="margin: 20px 0; display: flex; gap: 10px;">
+                <button id="btnEdit" class="btn btn-outline" onclick="toggleEdit()">🔒 Edição (Aba 1)</button>
+                <button id="btnFilter" class="btn btn-outline" onclick="toggleFilter()">👁️ Mostrar Tudo</button>
+            </div>
+
+            <div class="table-container">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th class="no-print">Ativo</th>
+                            <th style="text-align:center">Competência</th>
+                            <th>Abono</th>
+                            <th>13º Pago</th>
+                            <th>13º Devido</th>
+                            <th>Dif. 13º</th>
+                            <th>1/3 Férias Pago</th>
+                            <th>1/3 Férias Devido</th>
+                            <th>Dif. 1/3</th>
+                            <th>Subtotal Histórico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="summary-card">
+                <h3>Resumo do Valor Histórico (Sem Correção)</h3>
+                <div class="sum-row"><span>Total Histórico Devido</span> <span id="resBruto">R$ 0,00</span></div>
+            </div>
+        </section>
+    </div>
+
+    <div id="tab2" class="tab-content page-break">
+        <h2 style="margin-top: 0;">Planilha de Atualização Monetária (CJF)</h2>
+        <section class="no-print">
+            <textarea id="csvIndices" rows="4" placeholder="Cole os índices aqui (ex: jan/2015 1,497...)"></textarea>
+            <div style="margin-top: 15px; display: flex; gap: 20px; align-items: center;">
+                <button class="btn btn-primary" onclick="processarIndices()">⚙️ Aplicar Índices</button>
+                <label style="font-weight: bold; color: var(--danger); cursor: pointer;">
+                    <input type="checkbox" id="chkPagamento" onchange="renderCorrecao()"> Houve abatimento?
+                </label>
+            </div>
+        </section>
+
+        <section>
+            <div class="table-container">
+                <table id="tblCorrecao">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">Competência</th>
+                            <th>Principal<br>Apurado</th>
+                            <th class="col-pago" style="color:var(--danger)">Valor Pago</th>
+                            <th>Valor Base</th>
+                            <th>Fator Correção</th>
+                            <th>Principal Corrigido</th>
+                            <th>Juros Mora (%)</th>
+                            <th>SELIC (%)</th>
+                            <th>Total Atualizado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableCorrecaoBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="summary-card" id="resumoFinalContainer">
+                <h3 style="margin-bottom: 5px;">Resumo Final Discriminado</h3>
+                <div class="sum-row total-geral">
+                    <span>TOTAL DA CONDENAÇÃO (Principal + Juros + SELIC)</span> 
+                    <span id="resBrutoAtu">R$ 0,00</span>
+                </div>
+                
+                <div class="sum-row header-row">
+                    <span>1. Valor Devido à Parte Autora (<span id="resPercParte">80</span>%)</span> 
+                    <span id="resParteTotalAtu">R$ 0,00</span>
+                </div>
+                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resPartePrin">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resParteJur">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>└ SELIC</span> <span id="resParteSelic">R$ 0,00</span></div>
+
+                <div class="sum-row header-row">
+                    <span>2. Honorários Contratuais (Retenção - <span id="resPercContrato">20</span>%)</span> 
+                    <span id="resContratoTotalAtu">R$ 0,00</span>
+                </div>
+                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resContratoPrin">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resContratoJur">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>└ SELIC</span> <span id="resContratoSelic">R$ 0,00</span></div>
+
+                <div class="sum-row header-row" style="margin-top: 25px;">
+                    <span>3. Honorários de Sucumbência (<span id="resPercSucumb">10</span>% sobre a condenação)</span> 
+                    <span id="resSucumbTotalAtu">R$ 0,00</span>
+                </div>
+                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resSucumbPrin">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resSucumbJur">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>└ SELIC</span> <span id="resSucumbSelic">R$ 0,00</span></div>
+
+                <div id="statsBox" style="font-size: 0.85em; color: #666; margin-top: 25px; padding-top:10px; border-top: 1px dashed #ccc;"></div>
+            </div>
+        </section>
+    </div>
+
+    <section style="margin-top: 25px;">
+        <h2>Parâmetros Utilizados no Cálculo</h2>
+        <textarea id="txtParametros" rows="6"></textarea>
+    </section>
+
+    <div class="footer-gen">
+        <label>Arquivo gerado em:</label>
+        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: #7f8c8d; font-weight: bold;">
+    </div>
+
+    <section class="no-print" style="margin-top: 40px; display: flex; gap: 15px; justify-content: center;">
+        <button class="btn btn-secondary" onclick="imprimir('sistema')">📄 PDF Sistema</button>
+        <button class="btn btn-secondary" onclick="imprimir('classico')">📜 PDF</button>
+        <button class="btn btn-salmon" onclick="imprimir('salmao')">🍑 PDF Personalizado</button>
+    </section>
+
+    <div class="print-footer">
+        Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.
+    </div>
+</div>
+
+<script>
+    let dados = [];
+    let indicesMap = {};
+    let editMode = false, filterAll = false;
+
+    const fmtNum = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtIdx = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    const fmtMoeda = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    
+    const parseV = (s) => {
+        if (!s) return 0;
+        let n = s.toString().replace(/[^\d,-]/g, '').replace(',', '.');
+        return parseFloat(n) || 0;
+    };
+
+    function mascaraData(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length >= 2) v = v.substring(0, 2) + "/" + v.substring(2, 6);
+        input.value = v;
+    }
+
+    function parseMesAnoIndex(str) {
+        let s = str.toLowerCase().trim();
+        let parts = s.split('/');
+        if (parts.length !== 2) return s;
+        const mapa = { 'jan':'01', 'fev':'02', 'mar':'03', 'abr':'04', 'mai':'05', 'jun':'06', 'jul':'07', 'ago':'08', 'set':'09', 'out':'10', 'nov':'11', 'dez':'12', '13º':'13' };
+        let mes = mapa[parts[0]] || parts[0].padStart(2, '0');
+        let ano = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+        return `${mes}/${ano}`;
+    }
+
+    function setInitialDate() {
+        if (!document.getElementById('dataGeracao').value) {
+            document.getElementById('dataGeracao').value = new Date().toLocaleDateString('pt-BR');
+        }
+    }
+
+    function openTab(tabId, btn) {
+        document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function geraParams() {
+        const aju = document.getElementById('dataAjuizamento').value;
+        const cit = document.getElementById('dataCitacao').value;
+        const pre = document.getElementById('prescricaoToggle').value;
+        let d = aju ? aju.split('-').reverse().join('/') : '__/__/____';
+        
+        document.getElementById('txtParametros').value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:
+- IPCA-E do ano de 2000 em 12/2000
+- IPCA-E de 01/2001 a 11/2021
+- SELIC de 12/2021 a 04/2026
+
+Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
+    }
+
+    function processar() {
+        const raw = document.getElementById('csvInput').value.trim();
+        if (!raw) return alert("Cole os dados da ficha financeira.");
+
+        const linhas = raw.split('\n');
+        let header = linhas[0].split('\t').map(h => h.trim().toLowerCase());
+        
+        let iD = header.findIndex(h => h.includes('discriminacao') || h.includes('descrição') || h.includes('discriminação'));
+        let iV = header.findIndex(h => h === 'valor');
+        let iC = header.findIndex(h => h.includes('competencia') || h.includes('competência'));
+
+        if (iD === -1 || iV === -1 || iC === -1) {
+            return alert("Erro de leitura: O cabeçalho dos dados deve conter 'Discriminacao', 'Valor' e 'Competencia'.");
+        }
+
+        let agrupar = {};
+        for (let i = 1; i < linhas.length; i++) {
+            let col = linhas[i].split('\t');
+            if (col.length <= Math.max(iD, iV, iC)) continue; 
+            
+            let d = col[iD].toUpperCase(), v = parseV(col[iV]), c = col[iC].trim();
+            if (!c) continue; 
+
+            if (!agrupar[c]) agrupar[c] = { abono: 0, grat: 0, fer: 0, pagoVal: 0 };
+            
+            if (d.includes('ABONO DE PERMANENCIA') || d.includes('ABONO DE PERMANÊNCIA')) agrupar[c].abono += v;
+            else if (d.includes('GRATIFICAÇÃO NATALINA') || d.includes('GRATIFICACAO NATALINA')) agrupar[c].grat += v;
+            else if (d.includes('FERIAS') || d.includes('FÉRIAS') || d.includes('1/3')) agrupar[c].fer += v;
+        }
+
+        dados = Object.keys(agrupar).map(c => {
+            let o = agrupar[c];
+            let pagoPrevio = dados.find(x => x.c === c)?.pagoVal || 0; 
+            return { 
+                c, abono: o.abono, gratP: o.grat, ferP: o.fer, pagoVal: pagoPrevio, 
+                hab: true, gratD: o.grat > 0 ? o.grat + o.abono : 0, ferD: o.fer > 0 ? o.fer + (o.abono/3) : 0 
+            };
+        }).sort((a,b) => {
+            let da = a.c.split('/'), db = b.c.split('/');
+            return new Date(da[1], da[0]-1) - new Date(db[1], db[0]-1);
+        });
+        
+        renderApuracao();
+        renderCorrecao();
+    }
+
+    function renderApuracao() {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        dados.forEach((r, i) => {
+            let difG = r.gratP > 0 ? r.abono : 0;
+            let difF = r.ferP > 0 ? (r.abono/3) : 0;
+            if (!filterAll && (difG + difF) === 0) return;
+            const tr = document.createElement('tr');
+            if (!r.hab) tr.className = 'disabled-row';
+            
+            const alertG = (r.gratP > 0 && r.gratP < r.abono) ? 'alert-value' : '';
+            const alertF = (r.ferP > 0 && r.ferP < (r.abono/3)) ? 'alert-value' : '';
+
+            tr.innerHTML = `
+                <td class="no-print" style="text-align:center"><input type="checkbox" ${r.hab ? 'checked' : ''} onchange="toggleRow(${i})"></td>
+                <td style="text-align:center">${r.c}</td>
+                <td class="${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'abono',this.innerText)">${fmtNum(r.abono)}</td>
+                <td class="${alertG} ${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'gratP',this.innerText)">${fmtNum(r.gratP)}</td>
+                <td>${r.gratD > 0 ? fmtNum(r.gratD) : '-'}</td>
+                <td style="font-weight:600; color:var(--info)">${difG > 0 ? fmtNum(difG) : '-'}</td>
+                <td class="${alertF} ${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'ferP',this.innerText)">${fmtNum(r.ferP)}</td>
+                <td>${r.ferD > 0 ? fmtNum(r.ferD) : '-'}</td>
+                <td style="font-weight:600; color:var(--info)">${difF > 0 ? fmtNum(difF) : '-'}</td>
+                <td style="background:rgba(0,0,0,0.02); font-weight:bold">${fmtNum(difG + difF)}</td>`;
+            body.appendChild(tr);
+        });
+        calcularTotaisTodasAbas();
+    }
+
+    function updateVal(i, f, v) { 
+        dados[i][f] = parseV(v); 
+        dados[i].gratD = dados[i].gratP > 0 ? dados[i].gratP + dados[i].abono : 0;
+        dados[i].ferD = dados[i].ferP > 0 ? dados[i].ferP + (dados[i].abono/3) : 0;
+        renderApuracao(); renderCorrecao();
+    }
+
+    function toggleRow(i) { dados[i].hab = !dados[i].hab; renderApuracao(); renderCorrecao(); }
+    function toggleEdit() { editMode = !editMode; document.getElementById('btnEdit').classList.toggle('active', editMode); renderApuracao(); }
+    function toggleFilter() { filterAll = !filterAll; renderApuracao(); }
+
+    function processarIndices() {
+        const raw = document.getElementById('csvIndices').value.trim();
+        indicesMap = {};
+        if (!raw) return renderCorrecao();
+        raw.split('\n').forEach(linha => {
+            let cols = linha.split('\t');
+            if (cols.length >= 4) {
+                let normC = parseMesAnoIndex(cols[0].trim());
+                if (normC.match(/^\d{2}\/\d{4}$/)) {
+                    indicesMap[normC] = { cor: parseV(cols[1]), jur: parseV(cols[2]), sel: parseV(cols[3]) };
+                }
+            }
+        });
+        renderCorrecao();
+    }
+
+    function renderCorrecao() {
+        const body = document.getElementById('tableCorrecaoBody');
+        body.innerHTML = '';
+        let showPago = document.getElementById('chkPagamento').checked;
+        document.querySelectorAll('.col-pago').forEach(el => el.style.display = showPago ? 'table-cell' : 'none');
+        
+        dados.forEach((r, i) => {
+            let totalHist = (r.gratP > 0 ? r.abono : 0) + (r.ferP > 0 ? r.abono/3 : 0);
+            if (!r.hab || (!filterAll && totalHist === 0)) return;
+            
+            let idx = indicesMap[r.c] || { cor: 1.0, jur: 0, sel: 0 };
+            let base = totalHist - (r.pagoVal || 0);
+            if(base < 0) base = 0;
+
+            let principalCorrigido = base * idx.cor;
+            let valJurosMora = principalCorrigido * (idx.jur / 100);
+            let valSelic = principalCorrigido * (idx.sel / 100);
+            
+            r.principalCorrigido = principalCorrigido;
+            r.valJurosMora = valJurosMora;
+            r.valSelic = valSelic;
+            r.totalAtualizado = principalCorrigido + valJurosMora + valSelic;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td style="text-align:center">${r.c}</td><td>${fmtNum(totalHist)}</td><td class="col-pago"><span class="editable-active" contenteditable="true" onblur="dados[${i}].pagoVal=parseV(this.innerText);renderCorrecao()">${fmtNum(r.pagoVal)}</span></td><td>${fmtNum(base)}</td><td>${fmtIdx(idx.cor)}</td><td>${fmtNum(principalCorrigido)}</td><td>${fmtNum(idx.jur)}%</td><td>${fmtNum(idx.sel)}%</td><td style="font-weight:bold">${fmtNum(r.totalAtualizado)}</td>`;
+            body.appendChild(tr);
+        });
+        calcularTotaisTodasAbas();
+    }
+
+    function calcularTotaisTodasAbas() {
+        let h = 0, ea = 0, ex = 0;
+        let totBrutoAtu = 0, totPrincipalAtu = 0, totJurosMoraAtu = 0, totSelicAtu = 0;
+
+        dados.filter(d => d.hab).forEach(d => {
+            let t = (d.gratP > 0 ? d.abono : 0) + (d.ferP > 0 ? d.abono/3 : 0);
+            h += t; 
+            if(t > 0){ 
+                if(parseInt(d.c.split('/')[1]) < 2026) ea++; else ex++; 
+            }
+            if(d.totalAtualizado) {
+                totBrutoAtu += d.totalAtualizado;
+                totPrincipalAtu += d.principalCorrigido;
+                totJurosMoraAtu += d.valJurosMora;
+                totSelicAtu += d.valSelic;
+            }
+        });
+
+        let hc = parseV(document.getElementById('honContratuais').value);
+        let hs = parseV(document.getElementById('honSucumbencia').value);
+        
+        let fatorParte = (1 - hc/100);
+        let fatorContrato = (hc/100);
+        let fatorSucumb = (hs/100);
+
+        // Aba 1
+        document.getElementById('resBruto').innerText = fmtMoeda(h);
+        
+        // Aba 2 - TOTAL GERAL
+        document.getElementById('resBrutoAtu').innerText = fmtMoeda(totBrutoAtu);
+        
+        // Aba 2 - PARTE AUTORA
+        document.getElementById('resParteTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorParte);
+        document.getElementById('resPartePrin').innerText = fmtMoeda(totPrincipalAtu * fatorParte);
+        document.getElementById('resParteJur').innerText = fmtMoeda(totJurosMoraAtu * fatorParte);
+        document.getElementById('resParteSelic').innerText = fmtMoeda(totSelicAtu * fatorParte);
+        document.getElementById('resPercParte').innerText = (100 - hc).toFixed(1).replace('.0', '');
+
+        // Aba 2 - CONTRATUAIS
+        document.getElementById('resContratoTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorContrato);
+        document.getElementById('resContratoPrin').innerText = fmtMoeda(totPrincipalAtu * fatorContrato);
+        document.getElementById('resContratoJur').innerText = fmtMoeda(totJurosMoraAtu * fatorContrato);
+        document.getElementById('resContratoSelic').innerText = fmtMoeda(totSelicAtu * fatorContrato);
+        document.getElementById('resPercContrato').innerText = hc;
+
+        // Aba 2 - SUCUMBÊNCIA
+        document.getElementById('resSucumbTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorSucumb);
+        document.getElementById('resSucumbPrin').innerText = fmtMoeda(totPrincipalAtu * fatorSucumb);
+        document.getElementById('resSucumbJur').innerText = fmtMoeda(totJurosMoraAtu * fatorSucumb);
+        document.getElementById('resSucumbSelic').innerText = fmtMoeda(totSelicAtu * fatorSucumb);
+        document.getElementById('resPercSucumb').innerText = hs;
+        
+        // Aba 2 - Estatísticas
+        document.getElementById('statsBox').innerHTML = `• Exercícios Anteriores (até 2025): <strong>${ea}</strong> | • Exercício Atual (2026): <strong>${ex}</strong>`;
+    }
+
+    function salvarProjeto() {
+        const p = { 
+            meta: { 
+                proc: document.getElementById('procNumero').value, 
+                aut: document.getElementById('procAutor').value, 
+                cls: document.getElementById('procClasse').value, 
+                reu: document.getElementById('procReu').value, 
+                ass: document.getElementById('procAssunto').value, 
+                aju: document.getElementById('dataAjuizamento').value, 
+                cit: document.getElementById('dataCitacao').value, 
+                date: document.getElementById('dataGeracao').value 
+            }, 
+            d: dados, 
+            idx: indicesMap 
+        };
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(p)], {type: 'application/json'})); 
+        a.download = `Calculo_${p.meta.aut || 'Expertise'}.json`; 
+        a.click();
+    }
+
+    function carregarProjeto(inputElement) {
+        const file = inputElement.files[0];
+        if (!file) return;
+
+        const r = new FileReader();
+        r.onload = (e) => {
+            try {
+                const j = JSON.parse(e.target.result);
+                
+                if (j.meta) {
+                    if (document.getElementById('procNumero')) document.getElementById('procNumero').value = j.meta.proc || '';
+                    if (document.getElementById('procAutor')) document.getElementById('procAutor').value = j.meta.aut || '';
+                    if (document.getElementById('procClasse')) document.getElementById('procClasse').value = j.meta.cls || '';
+                    if (document.getElementById('procReu')) document.getElementById('procReu').value = j.meta.reu || '';
+                    if (document.getElementById('procAssunto')) document.getElementById('procAssunto').value = j.meta.ass || '';
+                    if (document.getElementById('dataAjuizamento')) document.getElementById('dataAjuizamento').value = j.meta.aju || '';
+                    if (document.getElementById('dataCitacao')) document.getElementById('dataCitacao').value = j.meta.cit || '';
+                    if (document.getElementById('dataGeracao') && j.meta.date) document.getElementById('dataGeracao').value = j.meta.date;
+                }
+                
+                dados = j.d || []; 
+                indicesMap = j.idx || {};
+                
+                if (Object.keys(indicesMap).length > 0) {
+                    let rawIdx = "Mês/Ano\tCorreção Monetária\t% Juros de mora\t% SELIC\n";
+                    for (let key in indicesMap) {
+                        rawIdx += `${key}\t${fmtIdx(indicesMap[key].cor)}\t${fmtNum(indicesMap[key].jur)}\t${fmtNum(indicesMap[key].sel)}\n`;
+                    }
+                    document.getElementById('csvIndices').value = rawIdx;
+                }
+
+                renderApuracao(); 
+                renderCorrecao();
+                geraParams();
+
+            } catch (error) {
+                alert("Erro ao ler o arquivo. O backup pode estar corrompido.");
+                console.error(error);
+            }
+        };
+        r.readAsText(file);
+        inputElement.value = '';
+    }
+
+    function imprimir(t) {
+        const h = document.getElementById('print-content');
+        let html = '';
+        const c = [
+            {l: 'Processo:', v: document.getElementById('procNumero').value}, 
+            {l: 'Classe:', v: document.getElementById('procClasse').value}, 
+            {l: 'Parte Autora:', v: document.getElementById('procAutor').value}, 
+            {l: 'Réu:', v: document.getElementById('procReu').value}, 
+            {l: 'Assunto:', v: document.getElementById('procAssunto').value}
+        ];
+        c.forEach(i => { if(i.v.trim()) html += `<p style="margin:4px 0"><strong>${i.l}</strong> ${i.v}</p>`; });
+        h.innerHTML = html;
+        
+        // Define a classe CSS baseada no botão clicado para a janela de impressão
+        document.getElementById('pageBody').className = (t === 'classico' ? 'theme-classic' : (t === 'salmao' ? 'theme-salmon' : 'theme-sistema'));
+        window.print();
+    }
+
+    setInitialDate();
+    geraParams();
+</script>
+</body>
+</html>
