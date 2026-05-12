@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expertise Judicial - Abono de Permanência</title>
+    <title>Cálculo Judicial - Abono de Permanência</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -593,7 +593,7 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
         };
         const a = document.createElement('a'); 
         a.href = URL.createObjectURL(new Blob([JSON.stringify(p)], {type: 'application/json'})); 
-        a.download = `Calculo_${p.meta.aut || 'Expertise'}.json`; 
+        a.download = `Calculo_${p.meta.aut || 'calculo'}.json`; 
         a.click();
     }
 
