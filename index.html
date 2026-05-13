@@ -12,7 +12,7 @@
             --danger: #e74c3c;
             --bg: #f8f9fa;
             --border: #dcdde1;
-            --salmon-custom: #FFC599; /* Cor exata solicitada */
+            --salmon-custom: #FFC599; 
         }
 
         body {
@@ -33,7 +33,6 @@
             position: relative;
         }
 
-        /* Links e Ações no Topo */
         .top-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 8px; align-items: center; }
         .top-actions a { text-decoration: none; }
         
@@ -66,15 +65,15 @@
         .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9em; }
         .btn-primary { background-color: var(--info); color: white; }
         .btn-secondary { background-color: var(--accent); color: white; }
-        
-        /* Ajuste do botão personalizado para ter contraste */
         .btn-salmon { background-color: var(--salmon-custom); color: #2c3e50; border: 1px solid #e0a579; font-weight: 700; }
-        
         .btn-outline { background-color: transparent; border: 1.5px solid var(--border); color: var(--accent); }
         .btn-outline.active { background-color: #f39c12; color: white; border-color: #f39c12; }
         .btn-link { background-color: #e8f4f8; color: var(--info); border: 1px solid var(--info); font-size: 0.8em; }
+        
+        /* Botão específico para o popup */
+        .btn-help { background-color: #f39c12; color: white; border: none; padding: 8px 15px; font-size: 0.85em; }
+        .btn-help:hover { background-color: #e67e22; }
 
-        /* Estilo do Resumo Final na tela */
         .summary-card { background: var(--bg); padding: 25px; border-radius: 10px; margin-top: 30px; border: 1px solid var(--border); }
         .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e1e1e1; }
         .sum-row.header-row { background:#e2e8f0; font-weight:bold; padding: 10px 12px; margin-top:15px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 1em;}
@@ -84,52 +83,59 @@
 
         #pdf-header-print { display: none; }
         .footer-gen { margin-top: 40px; font-size: 0.85em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; }
-
-        /* Estilo do Rodapé Fixo apenas para a Impressão */
         .print-footer { display: none; }
 
-        /* REGRAS EXCLUSIVAS PARA IMPRESSÃO / PDF */
+        /* ESTILOS DO MODAL (POPUP) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; 
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 800px; border-radius: 12px; padding: 35px; 
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3); position: relative; max-height: 85vh; overflow-y: auto;
+            transform: translateY(-20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; font-size: 1.8em; cursor: pointer; color: #7f8c8d; }
+        .modal-close:hover { color: var(--danger); }
+        .modal-title { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
+        .modal-body h4 { color: var(--info); margin-bottom: 8px; margin-top: 25px; font-size: 1.1em;}
+        .modal-body p { line-height: 1.6; color: #444; font-size: 0.95em; text-align: justify; margin-bottom: 10px;}
+        .modal-body ul { padding-left: 20px; margin-top: 5px; }
+        .modal-body li { margin-bottom: 8px; font-size: 0.95em; color: #444; line-height: 1.5; text-align: justify;}
+        .note-box { background-color: #fdf2e9; border-left: 4px solid #e67e22; padding: 15px; margin-top: 25px; border-radius: 4px; }
+        .note-box p { margin: 0; font-size: 0.9em; }
+        .note-box a { color: #d35400; font-weight: bold; text-decoration: none; }
+        .note-box a:hover { text-decoration: underline; }
+
         @media print {
-            .no-print, .top-actions, .tabs { display: none !important; }
+            .no-print, .top-actions, .tabs, .modal-overlay { display: none !important; }
             body { padding: 0; background: white; font-size: 11pt; } 
             .container { box-shadow: none; border: none; width: 100%; padding: 0; margin-bottom: 30px; }
             #pdf-header-print { display: block; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            
             .tab-content { display: block !important; opacity: 1 !important; }
             .page-break { page-break-before: always; padding-top: 20px; }
-            
             table { font-size: 9pt; } 
 
-            /* Inserção do Rodapé em Cinza Médio */
             .print-footer {
-                display: block !important;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                text-align: center;
-                font-size: 9pt;
-                color: #7f8c8d;
-                background-color: white;
-                padding-top: 5px;
-                border-top: 1px solid #eee;
+                display: block !important; position: fixed; bottom: 0; left: 0; width: 100%; text-align: center;
+                font-size: 9pt; color: #7f8c8d; background-color: white; padding-top: 5px; border-top: 1px solid #eee;
             }
 
-            /* 1. TEMA SISTEMA (Azul Petróleo, Cinza Claro e Branco) */
             .theme-sistema th { background-color: #174A67 !important; color: #fff !important; -webkit-print-color-adjust: exact; border: 1px solid #10364c !important; } 
             .theme-sistema .header-row { background-color: #eaf2f8 !important; border-color: #174A67 !important; -webkit-print-color-adjust: exact; }
             .theme-sistema tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; } 
             .theme-sistema tr:nth-child(even) { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
             .theme-sistema td { border: 1px solid #ccc !important; }
 
-            /* 2. TEMA PDF CLÁSSICO (Barras de Sistema Cinza Escuro/Médio e 2 Tons de Cinza nas Linhas) */
             .theme-classic th { background-color: #bdc3c7 !important; color: #000 !important; border: 1px solid #7f8c8d !important; -webkit-print-color-adjust: exact; } 
             .theme-classic .header-row { background-color: #d0d3d4 !important; border-color: #7f8c8d !important; color: #000 !important; -webkit-print-color-adjust: exact; }
-            .theme-classic tr:nth-child(odd) { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; } /* Cinza Claro */
-            .theme-classic tr:nth-child(even) { background-color: #e6e6e6 !important; -webkit-print-color-adjust: exact; } /* Cinza tom acima */
+            .theme-classic tr:nth-child(odd) { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; } 
+            .theme-classic tr:nth-child(even) { background-color: #e6e6e6 !important; -webkit-print-color-adjust: exact; } 
             .theme-classic td { border: 1px solid #aeb6bf !important; }
 
-            /* 3. TEMA PDF PERSONALIZADO (#FFC599) */
             .theme-salmon th { background-color: var(--salmon-custom) !important; color: #000 !important; border: 1px solid #dca377 !important; -webkit-print-color-adjust: exact; } 
             .theme-salmon .header-row { background-color: #ffecd9 !important; border-color: var(--salmon-custom) !important; color: #000 !important; -webkit-print-color-adjust: exact; }
             .theme-salmon tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
@@ -194,7 +200,7 @@
 
     <div class="tabs no-print">
         <button class="tab-btn active" onclick="openTab('tab1', this)">1. Apuração Histórica</button>
-        <button class="tab-btn" onclick="openTab('tab2', this)">2. Atualização CJF (EC 113)</button>
+        <button class="tab-btn" onclick="openTab('tab2', this)">2. Atualização Monetária CJF</button>
     </div>
 
     <div id="tab1" class="tab-content active">
@@ -240,12 +246,23 @@
     </div>
 
     <div id="tab2" class="tab-content page-break">
-        <h2 style="margin-top: 0;">Planilha de Atualização Monetária (CJF)</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0; margin-bottom: 15px;">
+            <h2 style="margin: 0; border-bottom: none; padding-bottom: 0;">Planilha de Atualização Monetária (CJF)</h2>
+        </div>
+        
         <section class="no-print">
-            <textarea id="csvIndices" rows="4" placeholder="Cole os índices aqui (ex: jan/2015 1,497...)"></textarea>
-            <div style="margin-top: 15px; display: flex; gap: 20px; align-items: center;">
+            <textarea id="csvIndices" rows="4" placeholder="Cole os índices aqui ou utilize os botões de carregamento..."></textarea>
+            <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="processarIndices()">⚙️ Aplicar Índices</button>
-                <label style="font-weight: bold; color: var(--danger); cursor: pointer;">
+                
+                <!-- Botões Corrigidos para EC 113 e EC 136 -->
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC113', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 113</button>
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC136', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 136</button>
+                
+                <!-- Novo Botão Entenda a Correção -->
+                <button class="btn btn-help" onclick="abrirModalExplicacao()">💡 Entenda a Correção</button>
+
+                <label style="font-weight: bold; color: var(--danger); cursor: pointer; margin-left: auto;">
                     <input type="checkbox" id="chkPagamento" onchange="renderCorrecao()"> Houve abatimento?
                 </label>
             </div>
@@ -314,7 +331,7 @@
 
     <div class="footer-gen">
         <label>Arquivo gerado em:</label>
-        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: #7f8c8d; font-weight: bold;">
+        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: #7f8c8d; font-weight: bold;" readonly>
     </div>
 
     <section class="no-print" style="margin-top: 40px; display: flex; gap: 15px; justify-content: center;">
@@ -325,6 +342,43 @@
 
     <div class="print-footer">
         Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.
+    </div>
+</div>
+
+<!-- MODAL: Entenda a Correção -->
+<div id="modalExplicacao" class="modal-overlay no-print" onclick="fecharModalFora(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModalExplicacao()">&times;</button>
+        <h2 class="modal-title">Critérios de Atualização e Juros</h2>
+        
+        <div class="modal-body">
+            <h4>1. Aplicação da EC nº 113/2021</h4>
+            <p>A atualização do débito e a incidência de juros observarão os seguintes critérios, em combinação com os termos iniciais, índices e percentuais previstos no Manual de Orientação de Procedimentos para os cálculos na Justiça Federal:</p>
+            <ul>
+                <li><strong>Até 08/12/2021:</strong> Os créditos serão corrigidos com observância do Índice de Preços ao Consumidor Amplo Especial (IPCA-E) e incidirão juros de mora equivalentes aos índices aplicáveis à caderneta de poupança, desde a citação (Tema nº 905 do STJ).</li>
+                <li><strong>A partir de 09/12/2021:</strong> Os créditos serão atualizados exclusivamente pelo índice da taxa referencial do Sistema Especial de Liquidação e de Custódia (SELIC), acumulado mensalmente.</li>
+            </ul>
+
+            <h4>2. Aplicação da EC nº 136/2025</h4>
+            <p>A atualização do débito e a incidência de juros observarão os critérios estabelecidos pelos Tribunais Superiores no RE 870.947 e no REsp 1.492.221 (art. 927, III, do CPC):</p>
+            <ul>
+                <li><strong>Até antes da vigência da EC 113/2021:</strong> Correção monetária pelo IPCA-e a contar do vencimento da dívida, e juros de mora equivalentes aos índices oficiais de remuneração básica e juros aplicáveis à caderneta de poupança, desde a citação (art. 1º-F da Lei nº 9.494/97).</li>
+                <li><strong>A partir de 08/12/2021 (EC 113/2021):</strong> Haverá a incidência, uma única vez, até o efetivo pagamento, do índice da taxa referencial da SELIC, acumulado mensalmente.</li>
+                <li><strong>A partir de 09/09/2025 (EC 136/2025):</strong> A atualização monetária e os juros de mora serão aplicados na forma do art. 3º da EC 113/2021, com a redação dada pela EC 136/2025, implicando:
+                    <ul>
+                        <li>Atualização monetária pela variação do IPCA;</li>
+                        <li>Juros de mora simples de 2% ao ano (2% a.a.);</li>
+                        <li><strong>Regra de Teto:</strong> O percentual final de atualização e juros, apurado na forma acima, não poderá ser superior à variação da Taxa Selic para o mesmo período, devendo esta ser aplicada em substituição caso o limite seja ultrapassado.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="note-box">
+                <p><strong>⚠️ Nota Técnica CJF nº 2/2025 (Outubro/2025):</strong></p>
+                <p style="margin-top: 5px;">Devido à Ação Direta de Inconstitucionalidade (ADI 7873), aplica-se rigorosamente o Manual de Orientação de Procedimentos para os Cálculos na Justiça Federal. <br>
+                <a href="https://www.cjf.jus.br/cjf/corregedoria-da-justica-federal/corregedoria-geral-da-justica-federal/comissao-de-solucoes-fundiarias/nota-tecnica-n-2-2025.pdf/@@download/file/NOTA%20T%C3%89CNICA%20N.%202-2025.pdf" target="_blank">Acessar a Nota Técnica na Íntegra 🔗</a></p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -349,19 +403,31 @@
         input.value = v;
     }
 
+    // Leitura inteligente de datas blindada contra o formato do Google Sheets
     function parseMesAnoIndex(str) {
-        let s = str.toLowerCase().trim();
+        let s = str.toLowerCase().replace(/\./g, '').trim(); 
         let parts = s.split('/');
-        if (parts.length !== 2) return s;
-        const mapa = { 'jan':'01', 'fev':'02', 'mar':'03', 'abr':'04', 'mai':'05', 'jun':'06', 'jul':'07', 'ago':'08', 'set':'09', 'out':'10', 'nov':'11', 'dez':'12', '13º':'13' };
-        let mes = mapa[parts[0]] || parts[0].padStart(2, '0');
-        let ano = parts[1].length === 2 ? '20' + parts[1] : parts[1];
-        return `${mes}/${ano}`;
+        
+        if (parts.length === 3) {
+            let mes = parts[1].padStart(2, '0');
+            let ano = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+            return `${mes}/${ano}`;
+        }
+        
+        if (parts.length === 2) {
+            const mapa = { 'jan':'01', 'fev':'02', 'mar':'03', 'abr':'04', 'mai':'05', 'jun':'06', 'jul':'07', 'ago':'08', 'set':'09', 'out':'10', 'nov':'11', 'dez':'12', '13º':'13' };
+            let mes = mapa[parts[0]] || parts[0].padStart(2, '0');
+            let ano = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+            return `${mes}/${ano}`;
+        }
+        
+        return s;
     }
 
     function setInitialDate() {
-        if (!document.getElementById('dataGeracao').value) {
-            document.getElementById('dataGeracao').value = new Date().toLocaleDateString('pt-BR');
+        const dGen = document.getElementById('dataGeracao');
+        if (dGen && !dGen.value) {
+            dGen.value = new Date().toLocaleDateString('pt-BR');
         }
     }
 
@@ -371,18 +437,31 @@
         btn.classList.add('active');
     }
 
+    /* FUNÇÕES DO MODAL EXPLICATIVO */
+    function abrirModalExplicacao() {
+        document.getElementById('modalExplicacao').classList.add('active');
+    }
+    
+    function fecharModalExplicacao() {
+        document.getElementById('modalExplicacao').classList.remove('active');
+    }
+
+    function fecharModalFora(event) {
+        if(event.target === document.getElementById('modalExplicacao')) {
+            fecharModalExplicacao();
+        }
+    }
+
     function geraParams() {
         const aju = document.getElementById('dataAjuizamento').value;
         const cit = document.getElementById('dataCitacao').value;
         const pre = document.getElementById('prescricaoToggle').value;
         let d = aju ? aju.split('-').reverse().join('/') : '__/__/____';
         
-        document.getElementById('txtParametros').value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:
-- IPCA-E do ano de 2000 em 12/2000
-- IPCA-E de 01/2001 a 11/2021
-- SELIC de 12/2021 a 04/2026
-
-Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
+        const txtParam = document.getElementById('txtParametros');
+        if (txtParam) {
+            txtParam.value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:\n- IPCA-E do ano de 2000 em 12/2000\n- IPCA-E de 01/2001 a 11/2021\n- SELIC de 12/2021 a 04/2026\n\nAjuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
+        }
     }
 
     function processar() {
@@ -487,6 +566,60 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
         renderCorrecao();
     }
 
+    async function carregarIndicesPlanilha(nomeAba, btnElement) {
+        const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR94jhhyuvlBxSLkhTSHfSJm5lDYxZUmbDIx5VB0TbbCo23rD4QcgG_Ft3Ii9yFnJ3LyKWjLtomgvqy/pub?output=tsv&single=true&gid=";
+        
+        // CORREÇÃO: EC 113 substitui a EC 103 com o GID correto
+        const urls = {
+            'EC113': baseUrl + '1468370044', 
+            'EC136': baseUrl + '0'           
+        };
+
+        const targetUrl = urls[nomeAba];
+        const textoOriginal = btnElement.innerHTML;
+
+        const proxies = [
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+        ];
+
+        btnElement.innerHTML = '⏳ Conectando...';
+        btnElement.disabled = true;
+        document.getElementById('csvIndices').value = 'Tentando conectar à nuvem... (pode levar uns segundos na primeira vez)';
+
+        let sucesso = false;
+
+        for (let i = 0; i < proxies.length; i++) {
+            try {
+                const response = await fetch(proxies[i]);
+                if (!response.ok) throw new Error("Erro no proxy " + (i+1));
+                
+                const texto = await response.text();
+                
+                if (texto.trim().startsWith('<html') || texto.trim().startsWith('<!DOCTYPE')) {
+                    throw new Error("Retornou código do site ao invés dos números.");
+                }
+
+                document.getElementById('csvIndices').value = texto;
+                processarIndices();
+                sucesso = true;
+                break; 
+
+            } catch (error) {
+                console.warn(`Tentativa ${i+1} falhou. Tentando próxima rota...`);
+            }
+        }
+
+        if (!sucesso) {
+            alert(`Falha ao baixar os dados da aba ${nomeAba}.\n\nO Firewall da sua rede de internet ou seu Antivírus está bloqueando a comunicação do site com o Google.\n\nVocê precisará colar os índices na caixa de texto manualmente.`);
+            document.getElementById('csvIndices').value = '';
+        }
+
+        btnElement.innerHTML = textoOriginal;
+        btnElement.disabled = false;
+    }
+
     function renderCorrecao() {
         const body = document.getElementById('tableCorrecaoBody');
         body.innerHTML = '';
@@ -504,7 +637,6 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
             let principalCorrigido = base * idx.cor;
             let valJurosMora = principalCorrigido * (idx.jur / 100);
             
-            // Nova regra da SELIC ajustada conforme instrução:
             let baseSelic = (idx.jur > 0) ? (principalCorrigido + valJurosMora) : principalCorrigido;
             let valSelic = baseSelic * (idx.sel / 100);
             
@@ -545,34 +677,27 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
         let fatorContrato = (hc/100);
         let fatorSucumb = (hs/100);
 
-        // Aba 1
         document.getElementById('resBruto').innerText = fmtMoeda(h);
-        
-        // Aba 2 - TOTAL GERAL
         document.getElementById('resBrutoAtu').innerText = fmtMoeda(totBrutoAtu);
         
-        // Aba 2 - PARTE AUTORA
         document.getElementById('resParteTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorParte);
         document.getElementById('resPartePrin').innerText = fmtMoeda(totPrincipalAtu * fatorParte);
         document.getElementById('resParteJur').innerText = fmtMoeda(totJurosMoraAtu * fatorParte);
         document.getElementById('resParteSelic').innerText = fmtMoeda(totSelicAtu * fatorParte);
         document.getElementById('resPercParte').innerText = (100 - hc).toFixed(1).replace('.0', '');
 
-        // Aba 2 - CONTRATUAIS
         document.getElementById('resContratoTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorContrato);
         document.getElementById('resContratoPrin').innerText = fmtMoeda(totPrincipalAtu * fatorContrato);
         document.getElementById('resContratoJur').innerText = fmtMoeda(totJurosMoraAtu * fatorContrato);
         document.getElementById('resContratoSelic').innerText = fmtMoeda(totSelicAtu * fatorContrato);
         document.getElementById('resPercContrato').innerText = hc;
 
-        // Aba 2 - SUCUMBÊNCIA
         document.getElementById('resSucumbTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorSucumb);
         document.getElementById('resSucumbPrin').innerText = fmtMoeda(totPrincipalAtu * fatorSucumb);
         document.getElementById('resSucumbJur').innerText = fmtMoeda(totJurosMoraAtu * fatorSucumb);
         document.getElementById('resSucumbSelic').innerText = fmtMoeda(totSelicAtu * fatorSucumb);
         document.getElementById('resPercSucumb').innerText = hs;
         
-        // Aba 2 - Estatísticas
         document.getElementById('statsBox').innerHTML = `• Exercícios Anteriores (até 2025): <strong>${ea}</strong> | • Exercício Atual (2026): <strong>${ex}</strong>`;
     }
 
@@ -654,13 +779,14 @@ Ajuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem pres
         c.forEach(i => { if(i.v.trim()) html += `<p style="margin:4px 0"><strong>${i.l}</strong> ${i.v}</p>`; });
         h.innerHTML = html;
         
-        // Define a classe CSS baseada no botão clicado para a janela de impressão
         document.getElementById('pageBody').className = (t === 'classico' ? 'theme-classic' : (t === 'salmao' ? 'theme-salmon' : 'theme-sistema'));
         window.print();
     }
 
-    setInitialDate();
-    geraParams();
+    window.addEventListener('DOMContentLoaded', () => {
+        setInitialDate();
+        geraParams();
+    });
 </script>
 </body>
 </html>
