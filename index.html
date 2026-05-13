@@ -212,6 +212,7 @@
     <div class="top-actions no-print">
         <a href="https://pss-progressivo.streamlit.app/" target="_blank" class="btn btn-link">🧮 Cálculo PSS</a>
         <a href="https://buscador-rubricas-fichanovadeepseek.streamlit.app/" target="_blank" class="btn btn-link">📋 Extração Fichas</a>
+        <a href="https://carlospatrickds.github.io/juntapdf/" target="_blank" class="btn btn-link">📂 Junta PDF</a>
         <div style="width: 15px;"></div>
         <button class="btn btn-outline btn-danger-outline" style="padding:6px 12px; font-size:0.8em" onclick="novoCalculo()">🧹 Novo Cálculo</button>
         <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="salvarProjeto()">💾 Salvar</button>
@@ -830,9 +831,9 @@
                 cls: document.getElementById('procClasse').value, reu: document.getElementById('procReu').value, 
                 ass: document.getElementById('procAssunto').value, aju: document.getElementById('dataAjuizamento').value, 
                 cit: document.getElementById('dataCitacao').value, date: document.getElementById('dataGeracao').value,
-                honCont: document.getElementById('honContratuais').value, // <-- SALVANDO HONORÁRIOS
-                honSuc: document.getElementById('honSucumbencia').value,  // <-- SALVANDO SUCUMBÊNCIA
-                presc: document.getElementById('prescricaoToggle').value  // <-- SALVANDO FILTRO PRESCRIÇÃO
+                honCont: document.getElementById('honContratuais').value,
+                honSuc: document.getElementById('honSucumbencia').value, 
+                presc: document.getElementById('prescricaoToggle').value 
             }, d: dados, idx: indicesMap 
         };
         const a = document.createElement('a'); 
@@ -841,7 +842,6 @@
         a.click();
     }
 
-    // Lógica principal de extração do JSON, separada para Input e Drag and Drop
     function processarArquivoJSON(file) {
         const r = new FileReader();
         r.onload = (e) => {
@@ -857,7 +857,6 @@
                     if (document.getElementById('dataCitacao')) document.getElementById('dataCitacao').value = j.meta.cit || '';
                     if (document.getElementById('dataGeracao') && j.meta.date) document.getElementById('dataGeracao').value = j.meta.date;
                     
-                    // <-- RESTAURANDO OS VALORES NOVOS
                     if (j.meta.honCont) document.getElementById('honContratuais').value = j.meta.honCont;
                     if (j.meta.honSuc) document.getElementById('honSucumbencia').value = j.meta.honSuc;
                     if (j.meta.presc) document.getElementById('prescricaoToggle').value = j.meta.presc;
@@ -872,7 +871,7 @@
                         rawIdx += `${key}\t${fmtIdx(indicesMap[key].cor)}\t${fmtNum(indicesMap[key].jur)}\t${fmtNum(indicesMap[key].sel)}\n`;
                     }
                     document.getElementById('csvIndices').value = rawIdx;
-                    localStorage.setItem('backupIndices', rawIdx); // Atualiza o cache também ao carregar JSON
+                    localStorage.setItem('backupIndices', rawIdx);
                 }
 
                 renderApuracao(); 
@@ -886,7 +885,6 @@
         r.readAsText(file);
     }
 
-    // Disparado pelo Input tradicional
     function carregarDoInput(inputElement) {
         const file = inputElement.files[0];
         if (!file) return;
@@ -894,7 +892,6 @@
         inputElement.value = '';
     }
 
-    // EVENTOS DE DRAG AND DROP
     const dragOverlay = document.getElementById('dragOverlay');
 
     window.addEventListener('dragover', (e) => {
@@ -933,7 +930,7 @@
             {l: 'Classe:', v: document.getElementById('procClasse').value}, 
             {l: 'Parte Autora:', v: document.getElementById('procAutor').value}, 
             {l: 'Réu:', v: document.getElementById('procReu').value}, 
-            {l: 'Assunto:', v: document.getElementById('procAssunto').value, mt: '15px'} // <-- ADICIONADO ESPAÇAMENTO AQUI
+            {l: 'Assunto:', v: document.getElementById('procAssunto').value, mt: '15px'}
         ];
         
         c.forEach(i => { 
@@ -952,7 +949,6 @@
         setInitialDate();
         geraParams();
 
-        // INICIALIZAÇÃO DO CACHE DOS ÍNDICES
         const indicesSalvos = localStorage.getItem('backupIndices');
         if (indicesSalvos) {
             document.getElementById('csvIndices').value = indicesSalvos;
