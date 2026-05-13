@@ -70,7 +70,6 @@
         .btn-outline.active { background-color: #f39c12; color: white; border-color: #f39c12; }
         .btn-link { background-color: #e8f4f8; color: var(--info); border: 1px solid var(--info); font-size: 0.8em; }
         
-        /* Botão específico para o popup */
         .btn-help { background-color: #f39c12; color: white; border: none; padding: 8px 15px; font-size: 0.85em; }
         .btn-help:hover { background-color: #e67e22; }
 
@@ -81,8 +80,11 @@
         .sum-row.sub:last-of-type { border-bottom: none; }
         .total-geral { border: none; font-weight: bold; font-size: 1.25em; color: var(--primary); padding: 15px 0; border-bottom: 2px solid #ccc; }
 
+        .disclaimer-footer { margin-top: 40px; padding: 15px 25px; background-color: #f8f9fa; border: 1px solid #dcdde1; color: #7f8c8d; font-size: 0.85em; border-radius: 8px; text-align: center; line-height: 1.5; }
+        .disclaimer-footer strong { color: var(--danger); }
+
         #pdf-header-print { display: none; }
-        .footer-gen { margin-top: 40px; font-size: 0.85em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; }
+        .footer-gen { margin-top: 20px; font-size: 0.85em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; }
         .print-footer { display: none; }
 
         /* ESTILOS DO MODAL (POPUP) */
@@ -179,14 +181,14 @@
 
     <section class="no-print">
         <div class="grid-input">
-            <div class="form-group"><label>Data Ajuizamento</label><input type="date" id="dataAjuizamento" onchange="geraParams()"></div>
+            <div class="form-group"><label>Data Ajuizamento</label><input type="date" id="dataAjuizamento" onchange="geraParams(); aplicarPrescricao()"></div>
             <div class="form-group">
                 <label>Data Citação (mm/aaaa)</label>
                 <input type="text" id="dataCitacao" placeholder="06/2022" maxlength="7" oninput="mascaraData(this); geraParams()">
             </div>
             <div class="form-group">
                 <label>Prescrição Quinquenal</label>
-                <select id="prescricaoToggle" onchange="geraParams()">
+                <select id="prescricaoToggle" onchange="geraParams(); aplicarPrescricao()">
                     <option value="sim">Sim (5 anos)</option>
                     <option value="nao">Não Aplicar</option>
                 </select>
@@ -255,11 +257,9 @@
             <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="processarIndices()">⚙️ Aplicar Índices</button>
                 
-                <!-- Botões Corrigidos para EC 113 e EC 136 -->
                 <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC113', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 113</button>
                 <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC136', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 136</button>
                 
-                <!-- Novo Botão Entenda a Correção -->
                 <button class="btn btn-help" onclick="abrirModalExplicacao()">💡 Entenda a Correção</button>
 
                 <label style="font-weight: bold; color: var(--danger); cursor: pointer; margin-left: auto;">
@@ -311,13 +311,16 @@
                 <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resContratoJur">R$ 0,00</span></div>
                 <div class="sum-row sub"><span>└ SELIC</span> <span id="resContratoSelic">R$ 0,00</span></div>
 
-                <div class="sum-row header-row" style="margin-top: 25px;">
-                    <span>3. Honorários de Sucumbência (<span id="resPercSucumb">10</span>% sobre a condenação)</span> 
-                    <span id="resSucumbTotalAtu">R$ 0,00</span>
+                <!-- Bloco de Sucumbência agora com ID para ocultar dinamicamente -->
+                <div id="secSucumbencia">
+                    <div class="sum-row header-row" style="margin-top: 25px;">
+                        <span>3. Honorários de Sucumbência (<span id="resPercSucumb">0</span>% sobre a condenação)</span> 
+                        <span id="resSucumbTotalAtu">R$ 0,00</span>
+                    </div>
+                    <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resSucumbPrin">R$ 0,00</span></div>
+                    <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resSucumbJur">R$ 0,00</span></div>
+                    <div class="sum-row sub"><span>└ SELIC</span> <span id="resSucumbSelic">R$ 0,00</span></div>
                 </div>
-                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resSucumbPrin">R$ 0,00</span></div>
-                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resSucumbJur">R$ 0,00</span></div>
-                <div class="sum-row sub"><span>└ SELIC</span> <span id="resSucumbSelic">R$ 0,00</span></div>
 
                 <div id="statsBox" style="font-size: 0.85em; color: #666; margin-top: 25px; padding-top:10px; border-top: 1px dashed #ccc;"></div>
             </div>
@@ -328,6 +331,11 @@
         <h2>Parâmetros Utilizados no Cálculo</h2>
         <textarea id="txtParametros" rows="6"></textarea>
     </section>
+
+    <!-- Rodapé de isenção de responsabilidade (Tela) -->
+    <div class="disclaimer-footer no-print">
+        <strong>Aviso:</strong> As informações inseridas no sistema são de inteira responsabilidade do usuário, devendo este ser responsabilizado por informações falsas ou imprecisas. O sistema tem o intuito de facilitar os cálculos realizados pelos seus desenvolvedores.
+    </div>
 
     <div class="footer-gen">
         <label>Arquivo gerado em:</label>
@@ -340,8 +348,10 @@
         <button class="btn btn-salmon" onclick="imprimir('salmao')">🟠 PDF Personalizado</button>
     </section>
 
+    <!-- Rodapé da Impressão PDF -->
     <div class="print-footer">
-        Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.
+        Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.<br>
+        As informações inseridas no sistema são de inteira responsabilidade do usuário.
     </div>
 </div>
 
@@ -403,7 +413,6 @@
         input.value = v;
     }
 
-    // Leitura inteligente de datas blindada contra o formato do Google Sheets
     function parseMesAnoIndex(str) {
         let s = str.toLowerCase().replace(/\./g, '').trim(); 
         let parts = s.split('/');
@@ -437,20 +446,9 @@
         btn.classList.add('active');
     }
 
-    /* FUNÇÕES DO MODAL EXPLICATIVO */
-    function abrirModalExplicacao() {
-        document.getElementById('modalExplicacao').classList.add('active');
-    }
-    
-    function fecharModalExplicacao() {
-        document.getElementById('modalExplicacao').classList.remove('active');
-    }
-
-    function fecharModalFora(event) {
-        if(event.target === document.getElementById('modalExplicacao')) {
-            fecharModalExplicacao();
-        }
-    }
+    function abrirModalExplicacao() { document.getElementById('modalExplicacao').classList.add('active'); }
+    function fecharModalExplicacao() { document.getElementById('modalExplicacao').classList.remove('active'); }
+    function fecharModalFora(event) { if(event.target === document.getElementById('modalExplicacao')) fecharModalExplicacao(); }
 
     function geraParams() {
         const aju = document.getElementById('dataAjuizamento').value;
@@ -462,6 +460,41 @@
         if (txtParam) {
             txtParam.value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:\n- IPCA-E do ano de 2000 em 12/2000\n- IPCA-E de 01/2001 a 11/2021\n- SELIC de 12/2021 a 04/2026\n\nAjuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
         }
+    }
+
+    function aplicarPrescricao() {
+        const ajuInput = document.getElementById('dataAjuizamento').value;
+        const pre = document.getElementById('prescricaoToggle').value;
+
+        if (dados.length === 0) return;
+
+        if (pre === 'sim' && !ajuInput) {
+            alert('Para aplicar o corte da prescrição quinquenal, por favor preencha a "Data de Ajuizamento" primeiro.');
+            document.getElementById('prescricaoToggle').value = 'nao';
+            return;
+        }
+
+        let corteDate = null;
+        if (pre === 'sim') {
+            let [anoAju, mesAju, diaAju] = ajuInput.split('-');
+            corteDate = new Date(anoAju - 5, mesAju - 1, 1);
+        }
+
+        dados.forEach(d => {
+            let parts = d.c.split('/');
+            if(parts.length === 2) {
+                let compDate = new Date(parseInt(parts[1]), parseInt(parts[0]) - 1, 1);
+                
+                if (pre === 'sim') {
+                    d.hab = compDate >= corteDate;
+                } else {
+                    d.hab = true;
+                }
+            }
+        });
+
+        renderApuracao();
+        renderCorrecao();
     }
 
     function processar() {
@@ -506,8 +539,7 @@
             return new Date(da[1], da[0]-1) - new Date(db[1], db[0]-1);
         });
         
-        renderApuracao();
-        renderCorrecao();
+        aplicarPrescricao();
     }
 
     function renderApuracao() {
@@ -569,7 +601,6 @@
     async function carregarIndicesPlanilha(nomeAba, btnElement) {
         const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR94jhhyuvlBxSLkhTSHfSJm5lDYxZUmbDIx5VB0TbbCo23rD4QcgG_Ft3Ii9yFnJ3LyKWjLtomgvqy/pub?output=tsv&single=true&gid=";
         
-        // CORREÇÃO: EC 113 substitui a EC 103 com o GID correto
         const urls = {
             'EC113': baseUrl + '1468370044', 
             'EC136': baseUrl + '0'           
@@ -692,11 +723,18 @@
         document.getElementById('resContratoSelic').innerText = fmtMoeda(totSelicAtu * fatorContrato);
         document.getElementById('resPercContrato').innerText = hc;
 
-        document.getElementById('resSucumbTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorSucumb);
-        document.getElementById('resSucumbPrin').innerText = fmtMoeda(totPrincipalAtu * fatorSucumb);
-        document.getElementById('resSucumbJur').innerText = fmtMoeda(totJurosMoraAtu * fatorSucumb);
-        document.getElementById('resSucumbSelic').innerText = fmtMoeda(totSelicAtu * fatorSucumb);
-        document.getElementById('resPercSucumb').innerText = hs;
+        // CONTROLE DE EXIBIÇÃO DA SUCUMBÊNCIA
+        const secSucumbencia = document.getElementById('secSucumbencia');
+        if (hs > 0) {
+            secSucumbencia.style.display = 'block';
+            document.getElementById('resSucumbTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorSucumb);
+            document.getElementById('resSucumbPrin').innerText = fmtMoeda(totPrincipalAtu * fatorSucumb);
+            document.getElementById('resSucumbJur').innerText = fmtMoeda(totJurosMoraAtu * fatorSucumb);
+            document.getElementById('resSucumbSelic').innerText = fmtMoeda(totSelicAtu * fatorSucumb);
+            document.getElementById('resPercSucumb').innerText = hs;
+        } else {
+            secSucumbencia.style.display = 'none';
+        }
         
         document.getElementById('statsBox').innerHTML = `• Exercícios Anteriores (até 2025): <strong>${ea}</strong> | • Exercício Atual (2026): <strong>${ex}</strong>`;
     }
