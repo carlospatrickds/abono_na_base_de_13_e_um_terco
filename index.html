@@ -5,35 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cálculo Judicial - Abono de Permanência</title>
     <style>
+        /* PALETA DE CORES DINÂMICA (VARIÁVEIS) */
         :root {
             --primary: #2c3e50;
             --accent: #34495e;
             --info: #2980b9;
             --danger: #e74c3c;
             --bg: #f8f9fa;
+            --container-bg: #fff;
             --border: #dcdde1;
             --salmon-custom: #FFC599; 
+            --text-main: #2f3640;
+            --text-muted: #7f8c8d;
+            --input-bg: #fff;
+            --header-bg: #e2e8f0;
+            --row-hover: rgba(0,0,0,0.02);
+            --th-bg: #2c3e50;
+        }
+
+        /* SUPORTE AUTOMÁTICO A DARK MODE */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #5dade2; 
+                --accent: #bdc3c7;
+                --info: #3498db;
+                --danger: #e74c3c;
+                --bg: #121212;
+                --container-bg: #1e1e1e;
+                --border: #444;
+                --salmon-custom: #d35400;
+                --text-main: #f5f6fa;
+                --text-muted: #b2bec3;
+                --input-bg: #2d3436;
+                --header-bg: #2d3436;
+                --row-hover: rgba(255,255,255,0.05);
+                --th-bg: #111;
+            }
+            .sum-row.sub { color: var(--text-muted); border-bottom: 1px dashed #555; }
+            .disabled-row { background-color: #2d3436; opacity: 0.6; }
+            .editable-active { background-color: #4a4123 !important; border-color: #f39c12 !important; color: #fff;}
+            .col-pago { background-color: #3b331c !important; }
+            .note-box { background-color: #2c2317 !important; border-left: 4px solid #e67e22; }
+            .note-box p, .modal-body p, .modal-body li { color: #dfe6e9 !important; }
+            .disclaimer-footer { background-color: #2d3436 !important; border-color: #444 !important; color: #b2bec3 !important; }
+            .tab-btn { color: var(--text-muted); }
+            .btn-link { background-color: #223344 !important; color: #5dade2 !important; border-color: #5dade2 !important; }
         }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
-            color: #2f3640;
+            color: var(--text-main);
             margin: 0;
             padding: 40px 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .container {
             max-width: 1350px;
             margin: auto;
-            background: #fff;
+            background: var(--container-bg);
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             position: relative;
         }
 
-        .top-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 8px; align-items: center; }
+        .top-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;}
         .top-actions a { text-decoration: none; }
         
         h1 { color: var(--primary); font-size: 1.8em; border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 30px; }
@@ -41,10 +79,10 @@
 
         .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; margin-bottom: 25px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 0.85em; color: var(--accent); }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95em; box-sizing: border-box; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95em; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-main); }
 
         .tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border); margin-bottom: 25px; padding-top: 20px;}
-        .tab-btn { background: transparent; border: none; font-size: 1.05em; font-weight: bold; color: #7f8c8d; cursor: pointer; padding: 12px 25px; border-radius: 8px 8px 0 0; transition: 0.3s; }
+        .tab-btn { background: transparent; border: none; font-size: 1.05em; font-weight: bold; color: var(--text-muted); cursor: pointer; padding: 12px 25px; border-radius: 8px 8px 0 0; transition: 0.3s; }
         .tab-btn.active { background: var(--info); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
@@ -53,10 +91,10 @@
 
         .table-container { overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-        th { background-color: var(--primary); color: white; padding: 12px 8px; border: 1px solid #444; }
+        th { background-color: var(--th-bg); color: white; padding: 12px 8px; border: 1px solid var(--border); }
         td { padding: 10px 8px; border: 1px solid var(--border); text-align: right; }
         
-        .alert-value { color: var(--danger) !important; font-weight: bold; background-color: #fff5f5; }
+        .alert-value { color: var(--danger) !important; font-weight: bold; }
         .disabled-row { opacity: 0.4; background-color: #f2f2f2; text-decoration: line-through; }
         .editable-active { background-color: #fffbe6; border: 1px dashed #f39c12 !important; cursor: text; }
         
@@ -65,27 +103,38 @@
         .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9em; }
         .btn-primary { background-color: var(--info); color: white; }
         .btn-secondary { background-color: var(--accent); color: white; }
-        .btn-salmon { background-color: var(--salmon-custom); color: #2c3e50; border: 1px solid #e0a579; font-weight: 700; }
-        .btn-outline { background-color: transparent; border: 1.5px solid var(--border); color: var(--accent); }
+        .btn-salmon { background-color: var(--salmon-custom); color: #fff; border: 1px solid var(--salmon-custom); font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+        .btn-outline { background-color: transparent; border: 1.5px solid var(--border); color: var(--text-main); }
         .btn-outline.active { background-color: #f39c12; color: white; border-color: #f39c12; }
         .btn-link { background-color: #e8f4f8; color: var(--info); border: 1px solid var(--info); font-size: 0.8em; }
+        .btn-danger-outline { border: 1px solid var(--danger); color: var(--danger); background: transparent; }
+        .btn-danger-outline:hover { background: var(--danger); color: white;}
         
         .btn-help { background-color: #f39c12; color: white; border: none; padding: 8px 15px; font-size: 0.85em; }
         .btn-help:hover { background-color: #e67e22; }
 
-        .summary-card { background: var(--bg); padding: 25px; border-radius: 10px; margin-top: 30px; border: 1px solid var(--border); }
-        .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e1e1e1; }
-        .sum-row.header-row { background:#e2e8f0; font-weight:bold; padding: 10px 12px; margin-top:15px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 1em;}
+        .summary-card { background: var(--input-bg); padding: 25px; border-radius: 10px; margin-top: 30px; border: 1px solid var(--border); }
+        .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .sum-row.header-row { background: var(--header-bg); font-weight:bold; padding: 10px 12px; margin-top:15px; border-radius: 4px; border: 1px solid var(--border); font-size: 1em;}
         .sum-row.sub { padding-left: 25px; font-size: 0.88em; border-bottom: 1px dashed #ccc; color: #444; }
         .sum-row.sub:last-of-type { border-bottom: none; }
-        .total-geral { border: none; font-weight: bold; font-size: 1.25em; color: var(--primary); padding: 15px 0; border-bottom: 2px solid #ccc; }
+        .total-geral { border: none; font-weight: bold; font-size: 1.25em; color: var(--primary); padding: 15px 0; border-bottom: 2px solid var(--border); }
 
-        .disclaimer-footer { margin-top: 40px; padding: 15px 25px; background-color: #f8f9fa; border: 1px solid #dcdde1; color: #7f8c8d; font-size: 0.85em; border-radius: 8px; text-align: center; line-height: 1.5; }
+        .disclaimer-footer { margin-top: 40px; padding: 15px 25px; background-color: #f8f9fa; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.85em; border-radius: 8px; text-align: center; line-height: 1.5; }
         .disclaimer-footer strong { color: var(--danger); }
 
         #pdf-header-print { display: none; }
-        .footer-gen { margin-top: 20px; font-size: 0.85em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; }
+        .footer-gen { margin-top: 20px; font-size: 0.85em; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 15px; }
         .print-footer { display: none; }
+
+        /* OVERLAY DE DRAG AND DROP */
+        .drag-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(41, 128, 185, 0.95); color: white; font-size: 2em; font-weight: bold;
+            display: none; justify-content: center; align-items: center; text-align: center;
+            z-index: 10000; border: 8px dashed rgba(255,255,255,0.5); box-sizing: border-box;
+        }
+        .drag-overlay.active { display: flex; }
 
         /* ESTILOS DO MODAL (POPUP) */
         .modal-overlay {
@@ -95,27 +144,27 @@
         }
         .modal-overlay.active { display: flex; opacity: 1; }
         .modal-content {
-            background: #fff; width: 90%; max-width: 800px; border-radius: 12px; padding: 35px; 
+            background: var(--container-bg); width: 90%; max-width: 800px; border-radius: 12px; padding: 35px; 
             box-shadow: 0 15px 50px rgba(0,0,0,0.3); position: relative; max-height: 85vh; overflow-y: auto;
-            transform: translateY(-20px); transition: transform 0.3s ease;
+            transform: translateY(-20px); transition: transform 0.3s ease; border: 1px solid var(--border);
         }
         .modal-overlay.active .modal-content { transform: translateY(0); }
-        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; font-size: 1.8em; cursor: pointer; color: #7f8c8d; }
+        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; font-size: 1.8em; cursor: pointer; color: var(--text-muted); }
         .modal-close:hover { color: var(--danger); }
         .modal-title { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
         .modal-body h4 { color: var(--info); margin-bottom: 8px; margin-top: 25px; font-size: 1.1em;}
-        .modal-body p { line-height: 1.6; color: #444; font-size: 0.95em; text-align: justify; margin-bottom: 10px;}
+        .modal-body p { line-height: 1.6; color: var(--text-main); font-size: 0.95em; text-align: justify; margin-bottom: 10px;}
         .modal-body ul { padding-left: 20px; margin-top: 5px; }
-        .modal-body li { margin-bottom: 8px; font-size: 0.95em; color: #444; line-height: 1.5; text-align: justify;}
+        .modal-body li { margin-bottom: 8px; font-size: 0.95em; color: var(--text-main); line-height: 1.5; text-align: justify;}
         .note-box { background-color: #fdf2e9; border-left: 4px solid #e67e22; padding: 15px; margin-top: 25px; border-radius: 4px; }
         .note-box p { margin: 0; font-size: 0.9em; }
         .note-box a { color: #d35400; font-weight: bold; text-decoration: none; }
         .note-box a:hover { text-decoration: underline; }
 
         @media print {
-            .no-print, .top-actions, .tabs, .modal-overlay { display: none !important; }
-            body { padding: 0; background: white; font-size: 11pt; } 
-            .container { box-shadow: none; border: none; width: 100%; padding: 0; margin-bottom: 30px; }
+            .no-print, .top-actions, .tabs, .modal-overlay, .drag-overlay { display: none !important; }
+            body { padding: 0; background: white; font-size: 11pt; color: #000; } 
+            .container { box-shadow: none; border: none; width: 100%; padding: 0; margin-bottom: 30px; background: #fff;}
             #pdf-header-print { display: block; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
             .tab-content { display: block !important; opacity: 1 !important; }
             .page-break { page-break-before: always; padding-top: 20px; }
@@ -127,37 +176,47 @@
             }
 
             .theme-sistema th { background-color: #174A67 !important; color: #fff !important; -webkit-print-color-adjust: exact; border: 1px solid #10364c !important; } 
-            .theme-sistema .header-row { background-color: #eaf2f8 !important; border-color: #174A67 !important; -webkit-print-color-adjust: exact; }
+            .theme-sistema .header-row { background-color: #eaf2f8 !important; border-color: #174A67 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
             .theme-sistema tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; } 
             .theme-sistema tr:nth-child(even) { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-            .theme-sistema td { border: 1px solid #ccc !important; }
+            .theme-sistema td { border: 1px solid #ccc !important; color: #000 !important;}
 
             .theme-classic th { background-color: #bdc3c7 !important; color: #000 !important; border: 1px solid #7f8c8d !important; -webkit-print-color-adjust: exact; } 
             .theme-classic .header-row { background-color: #d0d3d4 !important; border-color: #7f8c8d !important; color: #000 !important; -webkit-print-color-adjust: exact; }
             .theme-classic tr:nth-child(odd) { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; } 
             .theme-classic tr:nth-child(even) { background-color: #e6e6e6 !important; -webkit-print-color-adjust: exact; } 
-            .theme-classic td { border: 1px solid #aeb6bf !important; }
+            .theme-classic td { border: 1px solid #aeb6bf !important; color: #000 !important;}
 
-            .theme-salmon th { background-color: var(--salmon-custom) !important; color: #000 !important; border: 1px solid #dca377 !important; -webkit-print-color-adjust: exact; } 
-            .theme-salmon .header-row { background-color: #ffecd9 !important; border-color: var(--salmon-custom) !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon th { background-color: #FFC599 !important; color: #000 !important; border: 1px solid #dca377 !important; -webkit-print-color-adjust: exact; } 
+            .theme-salmon .header-row { background-color: #ffecd9 !important; border-color: #FFC599 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
             .theme-salmon tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
             .theme-salmon tr:nth-child(even) { background-color: #fffaf5 !important; -webkit-print-color-adjust: exact; }
-            .theme-salmon td { border: 1px solid #f0cdb4 !important; }
+            .theme-salmon td { border: 1px solid #f0cdb4 !important; color: #000 !important;}
 
             .disabled-row { display: none; }
+            
+            .sum-row { border-bottom-color: #ccc; }
+            .total-geral { color: #000 !important; }
+            .sum-row.sub { color: #444 !important; }
         }
     </style>
 </head>
 <body id="pageBody">
 
+<!-- TELA DE ARRASTAR E SOLTAR -->
+<div id="dragOverlay" class="drag-overlay no-print">
+    <span>📂<br>Solte o arquivo de projeto (.json) aqui...</span>
+</div>
+
 <div class="container">
     <div class="top-actions no-print">
         <a href="https://pss-progressivo.streamlit.app/" target="_blank" class="btn btn-link">🧮 Cálculo PSS</a>
         <a href="https://buscador-rubricas-fichanovadeepseek.streamlit.app/" target="_blank" class="btn btn-link">📋 Extração Fichas</a>
-        <div style="width: 20px;"></div>
+        <div style="width: 15px;"></div>
+        <button class="btn btn-outline btn-danger-outline" style="padding:6px 12px; font-size:0.8em" onclick="novoCalculo()">🧹 Novo Cálculo</button>
         <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="salvarProjeto()">💾 Salvar</button>
-        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="document.getElementById('fileInput').click()">📂 Carregar</button>
-        <input type="file" id="fileInput" style="display:none" accept=".json" onchange="carregarProjeto(this)">
+        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="document.getElementById('fileInput').click()">📂 Carregar JSON</button>
+        <input type="file" id="fileInput" style="display:none" accept=".json" onchange="carregarDoInput(this)">
     </div>
 
     <h1>Cálculo de Reflexos: Abono de Permanência</h1>
@@ -166,7 +225,7 @@
 
     <section class="no-print">
         <div class="grid-input">
-            <div class="form-group"><label>Processo nº</label><input type="text" id="procNumero"></div>
+            <div class="form-group"><label>Processo nº</label><input type="text" id="procNumero" maxlength="25" oninput="mascaraCNJ(this)" placeholder="0000000-00.0000.0.00.0000"></div>
             <div class="form-group"><label>Classe</label><input type="text" id="procClasse" value="CUMPRIMENTO DE SENTENÇA"></div>
         </div>
         <div class="grid-input">
@@ -257,8 +316,8 @@
             <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="processarIndices()">⚙️ Aplicar Índices</button>
                 
-                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC113', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 113</button>
-                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC136', this)" style="border-color: #2980b9; color: #2980b9;">⬇️ Carregar EC 136</button>
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC113', this)" style="border-color: #2980b9; color: var(--info);">⬇️ Carregar EC 113</button>
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC136', this)" style="border-color: #2980b9; color: var(--info);">⬇️ Carregar EC 136</button>
                 
                 <button class="btn btn-help" onclick="abrirModalExplicacao()">💡 Entenda a Correção</button>
 
@@ -311,7 +370,6 @@
                 <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resContratoJur">R$ 0,00</span></div>
                 <div class="sum-row sub"><span>└ SELIC</span> <span id="resContratoSelic">R$ 0,00</span></div>
 
-                <!-- Bloco de Sucumbência agora com ID para ocultar dinamicamente -->
                 <div id="secSucumbencia">
                     <div class="sum-row header-row" style="margin-top: 25px;">
                         <span>3. Honorários de Sucumbência (<span id="resPercSucumb">0</span>% sobre a condenação)</span> 
@@ -322,7 +380,7 @@
                     <div class="sum-row sub"><span>└ SELIC</span> <span id="resSucumbSelic">R$ 0,00</span></div>
                 </div>
 
-                <div id="statsBox" style="font-size: 0.85em; color: #666; margin-top: 25px; padding-top:10px; border-top: 1px dashed #ccc;"></div>
+                <div id="statsBox" style="font-size: 0.85em; color: var(--text-muted); margin-top: 25px; padding-top:10px; border-top: 1px dashed #ccc;"></div>
             </div>
         </section>
     </div>
@@ -332,14 +390,13 @@
         <textarea id="txtParametros" rows="6"></textarea>
     </section>
 
-    <!-- Rodapé de isenção de responsabilidade (Tela) -->
     <div class="disclaimer-footer no-print">
         <strong>Aviso:</strong> As informações inseridas no sistema são de inteira responsabilidade do usuário, devendo este ser responsabilizado por informações falsas ou imprecisas. O sistema tem o intuito de facilitar os cálculos realizados pelos seus desenvolvedores.
     </div>
 
     <div class="footer-gen">
         <label>Arquivo gerado em:</label>
-        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: #7f8c8d; font-weight: bold;" readonly>
+        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: var(--text-muted); font-weight: bold;" readonly>
     </div>
 
     <section class="no-print" style="margin-top: 40px; display: flex; gap: 15px; justify-content: center;">
@@ -348,7 +405,6 @@
         <button class="btn btn-salmon" onclick="imprimir('salmao')">🟠 PDF Personalizado</button>
     </section>
 
-    <!-- Rodapé da Impressão PDF -->
     <div class="print-footer">
         Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.<br>
         As informações inseridas no sistema são de inteira responsabilidade do usuário.
@@ -413,23 +469,30 @@
         input.value = v;
     }
 
+    function mascaraCNJ(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length > 7)  v = v.replace(/^(\d{7})(\d)/, "$1-$2");
+        if (v.length > 10) v = v.replace(/-(\d{2})(\d)/, "-$1.$2");
+        if (v.length > 15) v = v.replace(/\.(\d{4})(\d)/, ".$1.$2");
+        if (v.length > 17) v = v.replace(/\.(\d{1})(\d)/, ".$1.$2");
+        if (v.length > 20) v = v.replace(/\.(\d{2})(\d)/, ".$1.$2");
+        input.value = v;
+    }
+
     function parseMesAnoIndex(str) {
         let s = str.toLowerCase().replace(/\./g, '').trim(); 
         let parts = s.split('/');
-        
         if (parts.length === 3) {
             let mes = parts[1].padStart(2, '0');
             let ano = parts[2].length === 2 ? '20' + parts[2] : parts[2];
             return `${mes}/${ano}`;
         }
-        
         if (parts.length === 2) {
             const mapa = { 'jan':'01', 'fev':'02', 'mar':'03', 'abr':'04', 'mai':'05', 'jun':'06', 'jul':'07', 'ago':'08', 'set':'09', 'out':'10', 'nov':'11', 'dez':'12', '13º':'13' };
             let mes = mapa[parts[0]] || parts[0].padStart(2, '0');
             let ano = parts[1].length === 2 ? '20' + parts[1] : parts[1];
             return `${mes}/${ano}`;
         }
-        
         return s;
     }
 
@@ -462,6 +525,38 @@
         }
     }
 
+    function novoCalculo() {
+        if(!confirm("Tem certeza que deseja apagar todos os dados e iniciar um novo cálculo? Essa ação não pode ser desfeita.")) {
+            return;
+        }
+        
+        document.getElementById('procNumero').value = '';
+        document.getElementById('procClasse').value = 'CUMPRIMENTO DE SENTENÇA';
+        document.getElementById('procAutor').value = '';
+        document.getElementById('procReu').value = '';
+        document.getElementById('procAssunto').value = 'Apuração dos reflexos decorrentes da inclusão da rubrica abono de permanência ec 41/03 na base de cálculo da Gratificação natalina (13º salário) e Adicional de 1/3 de férias.';
+        document.getElementById('dataAjuizamento').value = '';
+        document.getElementById('dataCitacao').value = '';
+        document.getElementById('prescricaoToggle').value = 'sim';
+        document.getElementById('honContratuais').value = '20';
+        document.getElementById('honSucumbencia').value = '0';
+        
+        document.getElementById('csvInput').value = '';
+        // NOTA: A caixa de índices (csvIndices) de propósito NÃO é limpa aqui, 
+        // assim você não precisa baixá-los de novo para o próximo cálculo!
+        document.getElementById('chkPagamento').checked = false;
+        
+        dados = [];
+        filterAll = false;
+        editMode = false;
+        document.getElementById('btnEdit').classList.remove('active');
+        
+        setInitialDate();
+        geraParams();
+        renderApuracao();
+        renderCorrecao();
+    }
+
     function aplicarPrescricao() {
         const ajuInput = document.getElementById('dataAjuizamento').value;
         const pre = document.getElementById('prescricaoToggle').value;
@@ -484,12 +579,7 @@
             let parts = d.c.split('/');
             if(parts.length === 2) {
                 let compDate = new Date(parseInt(parts[1]), parseInt(parts[0]) - 1, 1);
-                
-                if (pre === 'sim') {
-                    d.hab = compDate >= corteDate;
-                } else {
-                    d.hab = true;
-                }
+                d.hab = pre === 'sim' ? (compDate >= corteDate) : true;
             }
         });
 
@@ -565,7 +655,7 @@
                 <td class="${alertF} ${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'ferP',this.innerText)">${fmtNum(r.ferP)}</td>
                 <td>${r.ferD > 0 ? fmtNum(r.ferD) : '-'}</td>
                 <td style="font-weight:600; color:var(--info)">${difF > 0 ? fmtNum(difF) : '-'}</td>
-                <td style="background:rgba(0,0,0,0.02); font-weight:bold">${fmtNum(difG + difF)}</td>`;
+                <td style="background:var(--row-hover); font-weight:bold">${fmtNum(difG + difF)}</td>`;
             body.appendChild(tr);
         });
         calcularTotaisTodasAbas();
@@ -585,7 +675,12 @@
     function processarIndices() {
         const raw = document.getElementById('csvIndices').value.trim();
         indicesMap = {};
-        if (!raw) return renderCorrecao();
+        
+        if (!raw) {
+            localStorage.removeItem('backupIndices');
+            return renderCorrecao();
+        }
+
         raw.split('\n').forEach(linha => {
             let cols = linha.split('\t');
             if (cols.length >= 4) {
@@ -595,17 +690,15 @@
                 }
             }
         });
+        
+        // Salva os índices em cache para não precisar baixar no próximo acesso
+        localStorage.setItem('backupIndices', raw);
         renderCorrecao();
     }
 
     async function carregarIndicesPlanilha(nomeAba, btnElement) {
         const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR94jhhyuvlBxSLkhTSHfSJm5lDYxZUmbDIx5VB0TbbCo23rD4QcgG_Ft3Ii9yFnJ3LyKWjLtomgvqy/pub?output=tsv&single=true&gid=";
-        
-        const urls = {
-            'EC113': baseUrl + '1468370044', 
-            'EC136': baseUrl + '0'           
-        };
-
+        const urls = { 'EC113': baseUrl + '1468370044', 'EC136': baseUrl + '0' };
         const targetUrl = urls[nomeAba];
         const textoOriginal = btnElement.innerHTML;
 
@@ -620,30 +713,30 @@
         document.getElementById('csvIndices').value = 'Tentando conectar à nuvem... (pode levar uns segundos na primeira vez)';
 
         let sucesso = false;
-
         for (let i = 0; i < proxies.length; i++) {
             try {
                 const response = await fetch(proxies[i]);
                 if (!response.ok) throw new Error("Erro no proxy " + (i+1));
-                
                 const texto = await response.text();
+                if (texto.trim().startsWith('<html') || texto.trim().startsWith('<!DOCTYPE')) throw new Error("Retornou HTML.");
                 
-                if (texto.trim().startsWith('<html') || texto.trim().startsWith('<!DOCTYPE')) {
-                    throw new Error("Retornou código do site ao invés dos números.");
+                // VALIDAÇÃO ESTRUTURAL
+                const primeiraLinha = texto.split('\n')[0].toLowerCase();
+                const numColunas = primeiraLinha.split('\t').length;
+                
+                if (numColunas < 4 || (!primeiraLinha.includes('mês') && !primeiraLinha.includes('ano'))) {
+                    alert(`⚠️ Aviso Amigável: A planilha "${nomeAba}" foi importada, mas a estrutura das colunas parece diferente do padrão esperado (foram encontradas ${numColunas} colunas). \n\nSe alguém alterou a ordem no Google Sheets, o cálculo pode falhar. Verifique os valores gerados na tabela!`);
                 }
 
                 document.getElementById('csvIndices').value = texto;
                 processarIndices();
                 sucesso = true;
                 break; 
-
-            } catch (error) {
-                console.warn(`Tentativa ${i+1} falhou. Tentando próxima rota...`);
-            }
+            } catch (error) { console.warn(`Tentativa ${i+1} falhou.`); }
         }
 
         if (!sucesso) {
-            alert(`Falha ao baixar os dados da aba ${nomeAba}.\n\nO Firewall da sua rede de internet ou seu Antivírus está bloqueando a comunicação do site com o Google.\n\nVocê precisará colar os índices na caixa de texto manualmente.`);
+            alert(`Falha ao baixar os dados da aba ${nomeAba}.\n\nO Firewall da sua rede de internet bloqueou a comunicação.\n\nCole os índices manualmente.`);
             document.getElementById('csvIndices').value = '';
         }
 
@@ -667,7 +760,6 @@
 
             let principalCorrigido = base * idx.cor;
             let valJurosMora = principalCorrigido * (idx.jur / 100);
-            
             let baseSelic = (idx.jur > 0) ? (principalCorrigido + valJurosMora) : principalCorrigido;
             let valSelic = baseSelic * (idx.sel / 100);
             
@@ -690,23 +782,16 @@
         dados.filter(d => d.hab).forEach(d => {
             let t = (d.gratP > 0 ? d.abono : 0) + (d.ferP > 0 ? d.abono/3 : 0);
             h += t; 
-            if(t > 0){ 
-                if(parseInt(d.c.split('/')[1]) < 2026) ea++; else ex++; 
-            }
+            if(t > 0){ if(parseInt(d.c.split('/')[1]) < 2026) ea++; else ex++; }
             if(d.totalAtualizado) {
-                totBrutoAtu += d.totalAtualizado;
-                totPrincipalAtu += d.principalCorrigido;
-                totJurosMoraAtu += d.valJurosMora;
-                totSelicAtu += d.valSelic;
+                totBrutoAtu += d.totalAtualizado; totPrincipalAtu += d.principalCorrigido;
+                totJurosMoraAtu += d.valJurosMora; totSelicAtu += d.valSelic;
             }
         });
 
         let hc = parseV(document.getElementById('honContratuais').value);
         let hs = parseV(document.getElementById('honSucumbencia').value);
-        
-        let fatorParte = (1 - hc/100);
-        let fatorContrato = (hc/100);
-        let fatorSucumb = (hs/100);
+        let fatorParte = (1 - hc/100); let fatorContrato = (hc/100); let fatorSucumb = (hs/100);
 
         document.getElementById('resBruto').innerText = fmtMoeda(h);
         document.getElementById('resBrutoAtu').innerText = fmtMoeda(totBrutoAtu);
@@ -723,7 +808,6 @@
         document.getElementById('resContratoSelic').innerText = fmtMoeda(totSelicAtu * fatorContrato);
         document.getElementById('resPercContrato').innerText = hc;
 
-        // CONTROLE DE EXIBIÇÃO DA SUCUMBÊNCIA
         const secSucumbencia = document.getElementById('secSucumbencia');
         if (hs > 0) {
             secSucumbencia.style.display = 'block';
@@ -742,17 +826,11 @@
     function salvarProjeto() {
         const p = { 
             meta: { 
-                proc: document.getElementById('procNumero').value, 
-                aut: document.getElementById('procAutor').value, 
-                cls: document.getElementById('procClasse').value, 
-                reu: document.getElementById('procReu').value, 
-                ass: document.getElementById('procAssunto').value, 
-                aju: document.getElementById('dataAjuizamento').value, 
-                cit: document.getElementById('dataCitacao').value, 
-                date: document.getElementById('dataGeracao').value 
-            }, 
-            d: dados, 
-            idx: indicesMap 
+                proc: document.getElementById('procNumero').value, aut: document.getElementById('procAutor').value, 
+                cls: document.getElementById('procClasse').value, reu: document.getElementById('procReu').value, 
+                ass: document.getElementById('procAssunto').value, aju: document.getElementById('dataAjuizamento').value, 
+                cit: document.getElementById('dataCitacao').value, date: document.getElementById('dataGeracao').value 
+            }, d: dados, idx: indicesMap 
         };
         const a = document.createElement('a'); 
         a.href = URL.createObjectURL(new Blob([JSON.stringify(p)], {type: 'application/json'})); 
@@ -760,15 +838,12 @@
         a.click();
     }
 
-    function carregarProjeto(inputElement) {
-        const file = inputElement.files[0];
-        if (!file) return;
-
+    // Lógica principal de extração do JSON, separada para Input e Drag and Drop
+    function processarArquivoJSON(file) {
         const r = new FileReader();
         r.onload = (e) => {
             try {
                 const j = JSON.parse(e.target.result);
-                
                 if (j.meta) {
                     if (document.getElementById('procNumero')) document.getElementById('procNumero').value = j.meta.proc || '';
                     if (document.getElementById('procAutor')) document.getElementById('procAutor').value = j.meta.aut || '';
@@ -789,20 +864,58 @@
                         rawIdx += `${key}\t${fmtIdx(indicesMap[key].cor)}\t${fmtNum(indicesMap[key].jur)}\t${fmtNum(indicesMap[key].sel)}\n`;
                     }
                     document.getElementById('csvIndices').value = rawIdx;
+                    localStorage.setItem('backupIndices', rawIdx); // Atualiza o cache também ao carregar JSON
                 }
 
                 renderApuracao(); 
                 renderCorrecao();
                 geraParams();
-
             } catch (error) {
-                alert("Erro ao ler o arquivo. O backup pode estar corrompido.");
+                alert("Erro ao ler o arquivo. O projeto pode estar corrompido ou não é um JSON válido.");
                 console.error(error);
             }
         };
         r.readAsText(file);
+    }
+
+    // Disparado pelo Input tradicional
+    function carregarDoInput(inputElement) {
+        const file = inputElement.files[0];
+        if (!file) return;
+        processarArquivoJSON(file);
         inputElement.value = '';
     }
+
+    // EVENTOS DE DRAG AND DROP
+    const dragOverlay = document.getElementById('dragOverlay');
+
+    window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.types.includes("Files")) {
+            dragOverlay.classList.add('active');
+        }
+    });
+
+    window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (e.clientX === 0 && e.clientY === 0) {
+            dragOverlay.classList.remove('active');
+        }
+    });
+
+    window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragOverlay.classList.remove('active');
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.json')) {
+                processarArquivoJSON(file);
+            } else {
+                alert('Formato inválido! Por favor, arraste e solte apenas os arquivos de projeto (.json) gerados pelo sistema.');
+            }
+        }
+    });
 
     function imprimir(t) {
         const h = document.getElementById('print-content');
@@ -824,6 +937,13 @@
     window.addEventListener('DOMContentLoaded', () => {
         setInitialDate();
         geraParams();
+
+        // INICIALIZAÇÃO DO CACHE DOS ÍNDICES
+        const indicesSalvos = localStorage.getItem('backupIndices');
+        if (indicesSalvos) {
+            document.getElementById('csvIndices').value = indicesSalvos;
+            processarIndices();
+        }
     });
 </script>
 </body>
