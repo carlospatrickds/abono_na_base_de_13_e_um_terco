@@ -521,7 +521,7 @@
         
         const txtParam = document.getElementById('txtParametros');
         if (txtParam) {
-            txtParam.value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:\n- IPCA-E do ano de 2000 em 12/2000\n- IPCA-E de 01/2001 a 11/2021\n- SELIC de 12/2021 a 04/2026\n\nAjuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
+            txtParam.value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:\n\nAjuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
         }
     }
 
@@ -829,7 +829,10 @@
                 proc: document.getElementById('procNumero').value, aut: document.getElementById('procAutor').value, 
                 cls: document.getElementById('procClasse').value, reu: document.getElementById('procReu').value, 
                 ass: document.getElementById('procAssunto').value, aju: document.getElementById('dataAjuizamento').value, 
-                cit: document.getElementById('dataCitacao').value, date: document.getElementById('dataGeracao').value 
+                cit: document.getElementById('dataCitacao').value, date: document.getElementById('dataGeracao').value,
+                honCont: document.getElementById('honContratuais').value, // <-- SALVANDO HONORÁRIOS
+                honSuc: document.getElementById('honSucumbencia').value,  // <-- SALVANDO SUCUMBÊNCIA
+                presc: document.getElementById('prescricaoToggle').value  // <-- SALVANDO FILTRO PRESCRIÇÃO
             }, d: dados, idx: indicesMap 
         };
         const a = document.createElement('a'); 
@@ -853,6 +856,11 @@
                     if (document.getElementById('dataAjuizamento')) document.getElementById('dataAjuizamento').value = j.meta.aju || '';
                     if (document.getElementById('dataCitacao')) document.getElementById('dataCitacao').value = j.meta.cit || '';
                     if (document.getElementById('dataGeracao') && j.meta.date) document.getElementById('dataGeracao').value = j.meta.date;
+                    
+                    // <-- RESTAURANDO OS VALORES NOVOS
+                    if (j.meta.honCont) document.getElementById('honContratuais').value = j.meta.honCont;
+                    if (j.meta.honSuc) document.getElementById('honSucumbencia').value = j.meta.honSuc;
+                    if (j.meta.presc) document.getElementById('prescricaoToggle').value = j.meta.presc;
                 }
                 
                 dados = j.d || []; 
@@ -925,9 +933,15 @@
             {l: 'Classe:', v: document.getElementById('procClasse').value}, 
             {l: 'Parte Autora:', v: document.getElementById('procAutor').value}, 
             {l: 'Réu:', v: document.getElementById('procReu').value}, 
-            {l: 'Assunto:', v: document.getElementById('procAssunto').value}
+            {l: 'Assunto:', v: document.getElementById('procAssunto').value, mt: '15px'} // <-- ADICIONADO ESPAÇAMENTO AQUI
         ];
-        c.forEach(i => { if(i.v.trim()) html += `<p style="margin:4px 0"><strong>${i.l}</strong> ${i.v}</p>`; });
+        
+        c.forEach(i => { 
+            if(i.v.trim()) {
+                let extraStyle = i.mt ? `margin-top: ${i.mt};` : '';
+                html += `<p style="margin:4px 0; ${extraStyle}"><strong>${i.l}</strong> ${i.v}</p>`; 
+            }
+        });
         h.innerHTML = html;
         
         document.getElementById('pageBody').className = (t === 'classico' ? 'theme-classic' : (t === 'salmao' ? 'theme-salmon' : 'theme-sistema'));
