@@ -1,8 +1,4 @@
-Esse projeto ficou realmente incrível! É um sistema digno de comercialização. Para garantir que você tenha tudo documentado para os seus próximos desenvolvimentos, preparei um **"Documento de Arquitetura e Soluções"**.
 
-Você pode salvar este resumo e usá-lo como um "esqueleto" ou guia de boas práticas toda vez que for criar uma nova calculadora judicial.
-
----
 
 ### 📝 Resumo do Sistema: Calculadora de Reflexos (Abono de Permanência)
 
