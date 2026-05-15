@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo Judicial - Abono de Permanência</title>
+    <style>
+        /* PALETA DE CORES DINÂMICA (VARIÁVEIS) */
+        :root {
+            --primary: #2c3e50;
+            --accent: #34495e;
+            --info: #2980b9;
+            --danger: #e74c3c;
+            --bg: #f8f9fa;
+            --container-bg: #fff;
+            --border: #dcdde1;
+            --salmon-custom: #FFC599; 
+            --text-main: #2f3640;
+            --text-muted: #7f8c8d;
+            --input-bg: #fff;
+            --header-bg: #e2e8f0;
+            --row-hover: rgba(0,0,0,0.02);
+            --th-bg: #2c3e50;
+            --divider-color: #174A67; /* Azul Petróleo */
+        }
+
+        /* SUPORTE AUTOMÁTICO A DARK MODE */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #5dade2; 
+                --accent: #bdc3c7;
+                --info: #3498db;
+                --danger: #e74c3c;
+                --bg: #121212;
+                --container-bg: #1e1e1e;
+                --border: #444;
+                --salmon-custom: #d35400;
+                --text-main: #f5f6fa;
+                --text-muted: #b2bec3;
+                --input-bg: #2d3436;
+                --header-bg: #2d3436;
+                --row-hover: rgba(255,255,255,0.05);
+                --th-bg: #111;
+                --divider-color: #4a8baf; /* Azul Petróleo mais claro para dar contraste no fundo escuro */
+            }
+            .sum-row.sub { color: var(--text-muted); border-bottom: 1px dashed #555; }
+            .disabled-row { background-color: #2d3436; opacity: 0.6; }
+            .editable-active { background-color: #4a4123 !important; border-color: #f39c12 !important; color: #fff;}
+            .col-pago { background-color: #3b331c !important; }
+            .note-box { background-color: #2c2317 !important; border-left: 4px solid #e67e22; }
+            .note-box p, .modal-body p, .modal-body li { color: #dfe6e9 !important; }
+            .disclaimer-footer { background-color: #2d3436 !important; border-color: #444 !important; color: #b2bec3 !important; }
+            .tab-btn { color: var(--text-muted); }
+            .btn-link { background-color: #223344 !important; color: #5dade2 !important; border-color: #5dade2 !important; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1350px;
+            margin: auto;
+            background: var(--container-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .top-actions { position: absolute; top: 20px; right: 40px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;}
+        .top-actions a { text-decoration: none; }
+        
+        h1 { color: var(--primary); font-size: 1.8em; border-left: 5px solid var(--info); padding-left: 15px; margin-bottom: 30px; }
+        h2 { color: var(--accent); font-size: 1.2em; margin-top: 35px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 0.85em; color: var(--accent); }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95em; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-main); }
+
+        .tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border); margin-bottom: 25px; padding-top: 20px;}
+        .tab-btn { background: transparent; border: none; font-size: 1.05em; font-weight: bold; color: var(--text-muted); cursor: pointer; padding: 12px 25px; border-radius: 8px 8px 0 0; transition: 0.3s; }
+        .tab-btn.active { background: var(--info); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th { background-color: var(--th-bg); color: white; padding: 12px 8px; border: 1px solid var(--border); }
+        td { padding: 10px 8px; border: 1px solid var(--border); text-align: right; }
+        
+        .alert-value { color: var(--danger) !important; font-weight: bold; }
+        .disabled-row { opacity: 0.4; background-color: #f2f2f2; text-decoration: line-through; }
+        .editable-active { background-color: #fffbe6; border: 1px dashed #f39c12 !important; cursor: text; }
+        
+        .col-pago { display: none; background-color: #fcf3cf; }
+
+        .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .btn-primary { background-color: var(--info); color: white; }
+        .btn-secondary { background-color: var(--accent); color: white; }
+        .btn-salmon { background-color: var(--salmon-custom); color: #fff; border: 1px solid var(--salmon-custom); font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+        .btn-outline { background-color: transparent; border: 1.5px solid var(--border); color: var(--text-main); }
+        .btn-outline.active { background-color: #f39c12; color: white; border-color: #f39c12; }
+        .btn-link { background-color: #e8f4f8; color: var(--info); border: 1px solid var(--info); font-size: 0.8em; }
+        .btn-danger-outline { border: 1px solid var(--danger); color: var(--danger); background: transparent; }
+        .btn-danger-outline:hover { background: var(--danger); color: white;}
+        
+        .btn-help { background-color: #f39c12; color: white; border: none; padding: 8px 15px; font-size: 0.85em; }
+        .btn-help:hover { background-color: #e67e22; }
+
+        .summary-card { background: var(--input-bg); padding: 25px; border-radius: 10px; margin-top: 30px; border: 1px solid var(--border); }
+        .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .sum-row.header-row { background: var(--header-bg); font-weight:bold; padding: 10px 12px; margin-top:15px; border-radius: 4px; border: 1px solid var(--border); font-size: 1em;}
+        .sum-row.sub { padding-left: 25px; font-size: 0.88em; border-bottom: 1px dashed #ccc; color: #444; }
+        .sum-row.sub:last-of-type { border-bottom: none; }
+        .total-geral { border: none; font-weight: bold; font-size: 1.25em; color: var(--primary); padding: 15px 0; border-bottom: 2px solid var(--border); }
+
+        .disclaimer-footer { margin-top: 40px; padding: 15px 25px; background-color: #f8f9fa; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.85em; border-radius: 8px; text-align: center; line-height: 1.5; }
+        .disclaimer-footer strong { color: var(--danger); }
+
+        #pdf-header-print { display: none; }
+        .footer-gen { margin-top: 20px; font-size: 0.85em; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 15px; }
+        .print-footer { display: none; }
+
+        /* NOVA CLASSE DE LINHA SEPARADORA (MARCADA E AZUL PETRÓLEO) */
+        .divider {
+            border: none;
+            border-top: 3px solid var(--divider-color);
+            margin: 30px 0;
+            border-radius: 3px;
+        }
+
+        /* OVERLAY DE DRAG AND DROP */
+        .drag-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(41, 128, 185, 0.95); color: white; font-size: 2em; font-weight: bold;
+            display: none; justify-content: center; align-items: center; text-align: center;
+            z-index: 10000; border: 8px dashed rgba(255,255,255,0.5); box-sizing: border-box;
+        }
+        .drag-overlay.active { display: flex; }
+
+        /* ESTILOS DO MODAL (POPUP) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; 
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: var(--container-bg); width: 90%; max-width: 800px; border-radius: 12px; padding: 35px; 
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3); position: relative; max-height: 85vh; overflow-y: auto;
+            transform: translateY(-20px); transition: transform 0.3s ease; border: 1px solid var(--border);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; font-size: 1.8em; cursor: pointer; color: var(--text-muted); }
+        .modal-close:hover { color: var(--danger); }
+        .modal-title { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
+        .modal-body h4 { color: var(--info); margin-bottom: 8px; margin-top: 25px; font-size: 1.1em;}
+        .modal-body p { line-height: 1.6; color: var(--text-main); font-size: 0.95em; text-align: justify; margin-bottom: 10px;}
+        .modal-body ul { padding-left: 20px; margin-top: 5px; }
+        .modal-body li { margin-bottom: 8px; font-size: 0.95em; color: var(--text-main); line-height: 1.5; text-align: justify;}
+        .note-box { background-color: #fdf2e9; border-left: 4px solid #e67e22; padding: 15px; margin-top: 25px; border-radius: 4px; }
+        .note-box p { margin: 0; font-size: 0.9em; }
+        .note-box a { color: #d35400; font-weight: bold; text-decoration: none; }
+        .note-box a:hover { text-decoration: underline; }
+
+        @media print {
+            .no-print, .top-actions, .tabs, .modal-overlay, .drag-overlay { display: none !important; }
+            body { padding: 0; background: white; font-size: 11pt; color: #000; } 
+            .container { box-shadow: none; border: none; width: 100%; padding: 0; margin-bottom: 30px; background: #fff;}
+            #pdf-header-print { display: block; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .tab-content { display: block !important; opacity: 1 !important; }
+            .page-break { page-break-before: always; padding-top: 20px; }
+            table { font-size: 9pt; } 
+
+            .print-footer {
+                display: block !important; position: fixed; bottom: 0; left: 0; width: 100%; text-align: center;
+                font-size: 9pt; color: #7f8c8d; background-color: white; padding-top: 5px; border-top: 1px solid #eee;
+            }
+
+            .theme-sistema th { background-color: #174A67 !important; color: #fff !important; -webkit-print-color-adjust: exact; border: 1px solid #10364c !important; } 
+            .theme-sistema .header-row { background-color: #eaf2f8 !important; border-color: #174A67 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-sistema tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; } 
+            .theme-sistema tr:nth-child(even) { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            .theme-sistema td { border: 1px solid #ccc !important; color: #000 !important;}
+
+            .theme-classic th { background-color: #bdc3c7 !important; color: #000 !important; border: 1px solid #7f8c8d !important; -webkit-print-color-adjust: exact; } 
+            .theme-classic .header-row { background-color: #d0d3d4 !important; border-color: #7f8c8d !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-classic tr:nth-child(odd) { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; } 
+            .theme-classic tr:nth-child(even) { background-color: #e6e6e6 !important; -webkit-print-color-adjust: exact; } 
+            .theme-classic td { border: 1px solid #aeb6bf !important; color: #000 !important;}
+
+            .theme-salmon th { background-color: #FFC599 !important; color: #000 !important; border: 1px solid #dca377 !important; -webkit-print-color-adjust: exact; } 
+            .theme-salmon .header-row { background-color: #ffecd9 !important; border-color: #FFC599 !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon tr:nth-child(odd) { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon tr:nth-child(even) { background-color: #fffaf5 !important; -webkit-print-color-adjust: exact; }
+            .theme-salmon td { border: 1px solid #f0cdb4 !important; color: #000 !important;}
+
+            .disabled-row { display: none; }
+            
+            .sum-row { border-bottom-color: #ccc; }
+            .total-geral { color: #000 !important; }
+            .sum-row.sub { color: #444 !important; }
+        }
+    </style>
+</head>
+<body id="pageBody">
+
+<!-- TELA DE ARRASTAR E SOLTAR -->
+<div id="dragOverlay" class="drag-overlay no-print">
+    <span>📂<br>Solte o arquivo de projeto (.json) aqui...</span>
+</div>
+
+<div class="container">
+    <div class="top-actions no-print">
+        <a href="https://pss-progressivo.streamlit.app/" target="_blank" class="btn btn-link">🧮 Cálculo PSS</a>
+        <a href="https://buscador-rubricas-fichanovadeepseek.streamlit.app/" target="_blank" class="btn btn-link">📋 Extração Fichas</a>
+        <a href="https://carlospatrickds.github.io/juntapdf/" target="_blank" class="btn btn-link">📂 Junta PDF</a>
+        <div style="width: 15px;"></div>
+        <button class="btn btn-outline btn-danger-outline" style="padding:6px 12px; font-size:0.8em" onclick="novoCalculo()">🧹 Novo Cálculo</button>
+        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="salvarProjeto()">💾 Salvar</button>
+        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8em" onclick="document.getElementById('fileInput').click()">📂 Carregar JSON</button>
+        <input type="file" id="fileInput" style="display:none" accept=".json" onchange="carregarDoInput(this)">
+    </div>
+
+    <h1>Cálculo de Reflexos: Abono de Permanência</h1>
+
+    <div id="pdf-header-print"><div id="print-content"></div></div>
+
+    <section class="no-print">
+        <div class="grid-input">
+            <div class="form-group"><label>Processo nº</label><input type="text" id="procNumero" maxlength="25" oninput="mascaraCNJ(this)" placeholder="0000000-00.0000.0.00.0000"></div>
+            <div class="form-group"><label>Classe</label><input type="text" id="procClasse" value=""></div>
+        </div>
+        <div class="grid-input">
+            <div class="form-group"><label>Parte Autora</label><input type="text" id="procAutor"></div>
+            <div class="form-group"><label>Réu</label><input type="text" id="procReu"></div>
+        </div>
+        <div class="form-group">
+            <label>Assunto do Cálculo</label>
+            <textarea id="procAssunto" rows="2">Apuração dos reflexos decorrentes da inclusão da rubrica abono de permanência ec 41/03 na base de cálculo da Gratificação natalina (13º salário) e Adicional de 1/3 de férias.</textarea>
+        </div>
+    </section>
+
+    <!-- LINHA SEPARADORA APÓS O ASSUNTO -->
+    <hr class="divider no-print">
+
+    <section class="no-print">
+        <div class="grid-input">
+            <div class="form-group"><label>Data Ajuizamento</label><input type="date" id="dataAjuizamento" onchange="geraParams(); aplicarPrescricao()"></div>
+            <div class="form-group">
+                <label>Data Citação (mm/aaaa)</label>
+                <input type="text" id="dataCitacao" placeholder="06/2022" maxlength="7" oninput="mascaraData(this); geraParams()">
+            </div>
+            <div class="form-group">
+                <label>Prescrição Quinquenal</label>
+                <select id="prescricaoToggle" onchange="geraParams(); aplicarPrescricao()">
+                    <option value="sim">Sim (5 anos)</option>
+                    <option value="nao">Não Aplicar</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid-input">
+            <div class="form-group"><label>Honorários Contratuais (%)</label><input type="number" id="honContratuais" value="20" onchange="calcularTotaisTodasAbas()"></div>
+            <div class="form-group"><label>Honorários Sucumbência (%)</label><input type="number" id="honSucumbencia" value="0" onchange="calcularTotaisTodasAbas()"></div>
+        </div>
+    </section>
+
+    <!-- LINHA SEPARADORA ANTES DAS ABAS -->
+    <hr class="divider no-print">
+
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="openTab('tab1', this)">1. Apuração Histórica</button>
+        <button class="tab-btn" onclick="openTab('tab2', this)">2. Atualização Monetária CJF</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <section class="no-print">
+            <h2>Importação da Ficha Financeira</h2>
+            <textarea id="csvInput" rows="3" placeholder="Cole aqui os dados da ficha financeira..."></textarea>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick="processar()">🚀 Processar Histórico</button>
+            </div>
+        </section>
+
+        <section>
+            <div class="no-print" style="margin: 20px 0; display: flex; gap: 10px;">
+                <button id="btnEdit" class="btn btn-outline" onclick="toggleEdit()">🔒 Edição (Aba 1)</button>
+                <button id="btnFilter" class="btn btn-outline" onclick="toggleFilter()">👁️ Mostrar Tudo</button>
+            </div>
+
+            <div class="table-container">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th class="no-print">Ativo</th>
+                            <th style="text-align:center">Competência</th>
+                            <th>Abono</th>
+                            <th>13º Pago</th>
+                            <th>13º Devido</th>
+                            <th>Dif. 13º</th>
+                            <th>1/3 Férias Pago</th>
+                            <th>1/3 Férias Devido</th>
+                            <th>Dif. 1/3</th>
+                            <th>Subtotal Histórico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="summary-card">
+                <h3>Resumo do Valor Histórico (Sem Correção)</h3>
+                <div class="sum-row"><span>Total Histórico Devido</span> <span id="resBruto">R$ 0,00</span></div>
+            </div>
+        </section>
+    </div>
+
+    <div id="tab2" class="tab-content page-break">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0; margin-bottom: 15px;">
+            <h2 style="margin: 0; border-bottom: none; padding-bottom: 0;">Planilha de Atualização Monetária (CJF)</h2>
+        </div>
+        
+        <section class="no-print">
+            <textarea id="csvIndices" rows="4" placeholder="Cole os índices aqui ou utilize os botões de carregamento..."></textarea>
+            <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="processarIndices()">⚙️ Aplicar Índices</button>
+                
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC113', this)" style="border-color: #2980b9; color: var(--info);">⬇️ Carregar EC 113</button>
+                <button class="btn btn-outline" onclick="carregarIndicesPlanilha('EC136', this)" style="border-color: #2980b9; color: var(--info);">⬇️ Carregar EC 136</button>
+                
+                <button class="btn btn-help" onclick="abrirModalExplicacao()">💡 Entenda a Correção</button>
+
+                <label style="font-weight: bold; color: var(--danger); cursor: pointer; margin-left: auto;">
+                    <input type="checkbox" id="chkPagamento" onchange="renderCorrecao()"> Houve abatimento?
+                </label>
+            </div>
+        </section>
+
+        <section>
+            <div class="table-container">
+                <table id="tblCorrecao">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">Competência</th>
+                            <th>Principal<br>Apurado</th>
+                            <th class="col-pago" style="color:var(--danger)">Valor Pago</th>
+                            <th>Valor Base</th>
+                            <th>Fator Correção</th>
+                            <th>Principal Corrigido</th>
+                            <th>Juros Mora (%)</th>
+                            <th>SELIC (%)</th>
+                            <th>Total Atualizado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableCorrecaoBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="summary-card" id="resumoFinalContainer">
+                <h3 style="margin-bottom: 5px;">Resumo Final Discriminado</h3>
+                <div class="sum-row total-geral">
+                    <span>TOTAL DA CONDENAÇÃO (Principal + Juros + SELIC)</span> 
+                    <span id="resBrutoAtu">R$ 0,00</span>
+                </div>
+                
+                <div class="sum-row header-row">
+                    <span>1. Valor Devido à Parte Autora (<span id="resPercParte">80</span>%)</span> 
+                    <span id="resParteTotalAtu">R$ 0,00</span>
+                </div>
+                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resPartePrin">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resParteJur">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>└ SELIC</span> <span id="resParteSelic">R$ 0,00</span></div>
+
+                <div class="sum-row header-row">
+                    <span>2. Honorários Contratuais (Retenção - <span id="resPercContrato">20</span>%)</span> 
+                    <span id="resContratoTotalAtu">R$ 0,00</span>
+                </div>
+                <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resContratoPrin">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resContratoJur">R$ 0,00</span></div>
+                <div class="sum-row sub"><span>└ SELIC</span> <span id="resContratoSelic">R$ 0,00</span></div>
+
+                <div id="secSucumbencia">
+                    <div class="sum-row header-row" style="margin-top: 25px;">
+                        <span>3. Honorários de Sucumbência (<span id="resPercSucumb">0</span>% sobre a condenação)</span> 
+                        <span id="resSucumbTotalAtu">R$ 0,00</span>
+                    </div>
+                    <div class="sum-row sub"><span>├ Principal Corrigido</span> <span id="resSucumbPrin">R$ 0,00</span></div>
+                    <div class="sum-row sub"><span>├ Juros de Mora</span> <span id="resSucumbJur">R$ 0,00</span></div>
+                    <div class="sum-row sub"><span>└ SELIC</span> <span id="resSucumbSelic">R$ 0,00</span></div>
+                </div>
+
+                <div id="statsBox" style="font-size: 0.85em; color: var(--text-muted); margin-top: 25px; padding-top:10px; border-top: 1px dashed #ccc;"></div>
+            </div>
+        </section>
+    </div>
+
+    <section style="margin-top: 25px;">
+        <h2>Parâmetros Utilizados no Cálculo</h2>
+        <textarea id="txtParametros" rows="6"></textarea>
+    </section>
+
+    <div class="disclaimer-footer no-print">
+        <strong>Aviso:</strong> As informações inseridas no sistema são de inteira responsabilidade do usuário, devendo este ser responsabilizado por informações falsas ou imprecisas. O sistema tem o intuito de facilitar os cálculos realizados pelos seus desenvolvedores.
+    </div>
+
+    <div class="footer-gen">
+        <label>Arquivo gerado em:</label>
+        <input type="text" id="dataGeracao" style="width: auto; border: none; background: transparent; padding: 0; color: var(--text-muted); font-weight: bold;" readonly>
+    </div>
+
+    <section class="no-print" style="margin-top: 40px; display: flex; gap: 15px; justify-content: center;">
+        <button class="btn btn-secondary" onclick="imprimir('sistema')">📄 PDF Sistema</button>
+        <button class="btn btn-secondary" onclick="imprimir('classico')">📜 PDF</button>
+        <button class="btn btn-salmon" onclick="imprimir('salmao')">🟠 PDF Personalizado</button>
+    </section>
+
+    <div class="print-footer">
+        Sistema de Cálculo de Reflexos: Inclusão de abono de permanência na base de cálculo da gratificação natalina e 1/3 de férias.<br>
+        As informações inseridas no sistema são de inteira responsabilidade do usuário.
+    </div>
+</div>
+
+<!-- MODAL: Entenda a Correção -->
+<div id="modalExplicacao" class="modal-overlay no-print" onclick="fecharModalFora(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModalExplicacao()">&times;</button>
+        <h2 class="modal-title">Critérios de Atualização e Juros</h2>
+        
+        <div class="modal-body">
+            <h4>1. Aplicação da EC nº 113/2021</h4>
+            <p>A atualização do débito e a incidência de juros observarão os seguintes critérios, em combinação com os termos iniciais, índices e percentuais previstos no Manual de Orientação de Procedimentos para os cálculos na Justiça Federal:</p>
+            <ul>
+                <li><strong>Até 08/12/2021:</strong> Os créditos serão corrigidos com observância do Índice de Preços ao Consumidor Amplo Especial (IPCA-E) e incidirão juros de mora equivalentes aos índices aplicáveis à caderneta de poupança, desde a citação (Tema nº 905 do STJ).</li>
+                <li><strong>A partir de 09/12/2021:</strong> Os créditos serão atualizados exclusivamente pelo índice da taxa referencial do Sistema Especial de Liquidação e de Custódia (SELIC), acumulado mensalmente.</li>
+            </ul>
+
+            <h4>2. Aplicação da EC nº 136/2025</h4>
+            <p>A atualização do débito e a incidência de juros observarão os critérios estabelecidos pelos Tribunais Superiores no RE 870.947 e no REsp 1.492.221 (art. 927, III, do CPC):</p>
+            <ul>
+                <li><strong>Até antes da vigência da EC 113/2021:</strong> Correção monetária pelo IPCA-e a contar do vencimento da dívida, e juros de mora equivalentes aos índices oficiais de remuneração básica e juros aplicáveis à caderneta de poupança, desde a citação (art. 1º-F da Lei nº 9.494/97).</li>
+                <li><strong>A partir de 08/12/2021 (EC 113/2021):</strong> Haverá a incidência, uma única vez, até o efetivo pagamento, do índice da taxa referencial da SELIC, acumulado mensalmente.</li>
+                <li><strong>A partir de 09/09/2025 (EC 136/2025):</strong> A atualização monetária e os juros de mora serão aplicados na forma do art. 3º da EC 113/2021, com a redação dada pela EC 136/2025, implicando:
+                    <ul>
+                        <li>Atualização monetária pela variação do IPCA;</li>
+                        <li>Juros de mora simples de 2% ao ano (2% a.a.);</li>
+                        <li><strong>Regra de Teto:</strong> O percentual final de atualização e juros, apurado na forma acima, não poderá ser superior à variação da Taxa Selic para o mesmo período, devendo esta ser aplicada em substituição caso o limite seja ultrapassado.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="note-box">
+                <p><strong>⚠️ Nota Técnica CJF nº 2/2025 (Outubro/2025):</strong></p>
+                <p style="margin-top: 5px;">Devido à Ação Direta de Inconstitucionalidade (ADI 7873), aplica-se rigorosamente o Manual de Orientação de Procedimentos para os Cálculos na Justiça Federal. <br>
+                <a href="https://www.cjf.jus.br/cjf/corregedoria-da-justica-federal/corregedoria-geral-da-justica-federal/comissao-de-solucoes-fundiarias/nota-tecnica-n-2-2025.pdf/@@download/file/NOTA%20T%C3%89CNICA%20N.%202-2025.pdf" target="_blank">Acessar a Nota Técnica na Íntegra 🔗</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let dados = [];
+    let indicesMap = {};
+    let editMode = false, filterAll = false;
+
+    const fmtNum = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtIdx = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    const fmtMoeda = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    
+    const parseV = (s) => {
+        if (!s) return 0;
+        let n = s.toString().replace(/[^\d,-]/g, '').replace(',', '.');
+        return parseFloat(n) || 0;
+    };
+
+    function mascaraData(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length >= 2) v = v.substring(0, 2) + "/" + v.substring(2, 6);
+        input.value = v;
+    }
+
+    function mascaraCNJ(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length > 7)  v = v.replace(/^(\d{7})(\d)/, "$1-$2");
+        if (v.length > 10) v = v.replace(/-(\d{2})(\d)/, "-$1.$2");
+        if (v.length > 15) v = v.replace(/\.(\d{4})(\d)/, ".$1.$2");
+        if (v.length > 17) v = v.replace(/\.(\d{1})(\d)/, ".$1.$2");
+        if (v.length > 20) v = v.replace(/\.(\d{2})(\d)/, ".$1.$2");
+        input.value = v;
+    }
+
+    function parseMesAnoIndex(str) {
+        let s = str.toLowerCase().replace(/\./g, '').trim(); 
+        let parts = s.split('/');
+        if (parts.length === 3) {
+            let mes = parts[1].padStart(2, '0');
+            let ano = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+            return `${mes}/${ano}`;
+        }
+        if (parts.length === 2) {
+            const mapa = { 'jan':'01', 'fev':'02', 'mar':'03', 'abr':'04', 'mai':'05', 'jun':'06', 'jul':'07', 'ago':'08', 'set':'09', 'out':'10', 'nov':'11', 'dez':'12', '13º':'13' };
+            let mes = mapa[parts[0]] || parts[0].padStart(2, '0');
+            let ano = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+            return `${mes}/${ano}`;
+        }
+        return s;
+    }
+
+    function setInitialDate() {
+        const dGen = document.getElementById('dataGeracao');
+        if (dGen && !dGen.value) {
+            dGen.value = new Date().toLocaleDateString('pt-BR');
+        }
+    }
+
+    function openTab(tabId, btn) {
+        document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function abrirModalExplicacao() { document.getElementById('modalExplicacao').classList.add('active'); }
+    function fecharModalExplicacao() { document.getElementById('modalExplicacao').classList.remove('active'); }
+    function fecharModalFora(event) { if(event.target === document.getElementById('modalExplicacao')) fecharModalExplicacao(); }
+
+    function geraParams() {
+        const aju = document.getElementById('dataAjuizamento').value;
+        const cit = document.getElementById('dataCitacao').value;
+        const pre = document.getElementById('prescricaoToggle').value;
+        let d = aju ? aju.split('-').reverse().join('/') : '__/__/____';
+        
+        const txtParam = document.getElementById('txtParametros');
+        if (txtParam) {
+            txtParam.value = `Atualização monetária referente aos CRÉDITOS REFERENTES A SERVIDORES E EMPREGADOS PÚBLICOS (CJF), INDEXADORES:\n\nAjuizamento em ${d}, ${pre === 'sim' ? 'com prescrição quinquenal' : 'sem prescrição'}. Citação em ${cit || '__/____'}, termo inicial dos juros.`;
+        }
+    }
+
+    function novoCalculo() {
+        if(!confirm("Tem certeza que deseja apagar todos os dados e iniciar um novo cálculo? Essa ação não pode ser desfeita.")) {
+            return;
+        }
+        
+        document.getElementById('procNumero').value = '';
+        document.getElementById('procClasse').value = 'CUMPRIMENTO DE SENTENÇA';
+        document.getElementById('procAutor').value = '';
+        document.getElementById('procReu').value = '';
+        document.getElementById('procAssunto').value = 'Apuração dos reflexos decorrentes da inclusão da rubrica abono de permanência ec 41/03 na base de cálculo da Gratificação natalina (13º salário) e Adicional de 1/3 de férias.';
+        document.getElementById('dataAjuizamento').value = '';
+        document.getElementById('dataCitacao').value = '';
+        document.getElementById('prescricaoToggle').value = 'sim';
+        document.getElementById('honContratuais').value = '20';
+        document.getElementById('honSucumbencia').value = '0';
+        
+        document.getElementById('csvInput').value = '';
+        // NOTA: A caixa de índices (csvIndices) de propósito NÃO é limpa aqui, 
+        // assim você não precisa baixá-los de novo para o próximo cálculo!
+        document.getElementById('chkPagamento').checked = false;
+        
+        dados = [];
+        filterAll = false;
+        editMode = false;
+        document.getElementById('btnEdit').classList.remove('active');
+        
+        setInitialDate();
+        geraParams();
+        renderApuracao();
+        renderCorrecao();
+    }
+
+    function aplicarPrescricao() {
+        const ajuInput = document.getElementById('dataAjuizamento').value;
+        const pre = document.getElementById('prescricaoToggle').value;
+
+        if (dados.length === 0) return;
+
+        if (pre === 'sim' && !ajuInput) {
+            alert('Para aplicar o corte da prescrição quinquenal, por favor preencha a "Data de Ajuizamento" primeiro.');
+            document.getElementById('prescricaoToggle').value = 'nao';
+            return;
+        }
+
+        let corteDate = null;
+        if (pre === 'sim') {
+            let [anoAju, mesAju, diaAju] = ajuInput.split('-');
+            corteDate = new Date(anoAju - 5, mesAju - 1, 1);
+        }
+
+        dados.forEach(d => {
+            let parts = d.c.split('/');
+            if(parts.length === 2) {
+                let compDate = new Date(parseInt(parts[1]), parseInt(parts[0]) - 1, 1);
+                d.hab = pre === 'sim' ? (compDate >= corteDate) : true;
+            }
+        });
+
+        renderApuracao();
+        renderCorrecao();
+    }
+
+    function processar() {
+        const raw = document.getElementById('csvInput').value.trim();
+        if (!raw) return alert("Cole os dados da ficha financeira.");
+
+        const linhas = raw.split('\n');
+        let header = linhas[0].split('\t').map(h => h.trim().toLowerCase());
+        
+        let iD = header.findIndex(h => h.includes('discriminacao') || h.includes('descrição') || h.includes('discriminação'));
+        let iV = header.findIndex(h => h === 'valor');
+        let iC = header.findIndex(h => h.includes('competencia') || h.includes('competência'));
+
+        if (iD === -1 || iV === -1 || iC === -1) {
+            return alert("Erro de leitura: O cabeçalho dos dados deve conter 'Discriminacao', 'Valor' e 'Competencia'.");
+        }
+
+        let agrupar = {};
+        for (let i = 1; i < linhas.length; i++) {
+            let col = linhas[i].split('\t');
+            if (col.length <= Math.max(iD, iV, iC)) continue; 
+            
+            let d = col[iD].toUpperCase(), v = parseV(col[iV]), c = col[iC].trim();
+            if (!c) continue; 
+
+            if (!agrupar[c]) agrupar[c] = { abono: 0, grat: 0, fer: 0, pagoVal: 0 };
+            
+            if (d.includes('ABONO DE PERMANENCIA') || d.includes('ABONO DE PERMANÊNCIA')) agrupar[c].abono += v;
+            else if (d.includes('GRATIFICAÇÃO NATALINA') || d.includes('GRATIFICACAO NATALINA')) agrupar[c].grat += v;
+            else if (d.includes('FERIAS') || d.includes('FÉRIAS') || d.includes('1/3')) agrupar[c].fer += v;
+        }
+
+        dados = Object.keys(agrupar).map(c => {
+            let o = agrupar[c];
+            let pagoPrevio = dados.find(x => x.c === c)?.pagoVal || 0; 
+            return { 
+                c, abono: o.abono, gratP: o.grat, ferP: o.fer, pagoVal: pagoPrevio, 
+                hab: true, gratD: o.grat > 0 ? o.grat + o.abono : 0, ferD: o.fer > 0 ? o.fer + (o.abono/3) : 0 
+            };
+        }).sort((a,b) => {
+            let da = a.c.split('/'), db = b.c.split('/');
+            return new Date(da[1], da[0]-1) - new Date(db[1], db[0]-1);
+        });
+        
+        aplicarPrescricao();
+    }
+
+    function renderApuracao() {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        dados.forEach((r, i) => {
+            let difG = r.gratP > 0 ? r.abono : 0;
+            let difF = r.ferP > 0 ? (r.abono/3) : 0;
+            if (!filterAll && (difG + difF) === 0) return;
+            const tr = document.createElement('tr');
+            if (!r.hab) tr.className = 'disabled-row';
+            
+            const alertG = (r.gratP > 0 && r.gratP < r.abono) ? 'alert-value' : '';
+            const alertF = (r.ferP > 0 && r.ferP < (r.abono/3)) ? 'alert-value' : '';
+
+            tr.innerHTML = `
+                <td class="no-print" style="text-align:center"><input type="checkbox" ${r.hab ? 'checked' : ''} onchange="toggleRow(${i})"></td>
+                <td style="text-align:center">${r.c}</td>
+                <td class="${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'abono',this.innerText)">${fmtNum(r.abono)}</td>
+                <td class="${alertG} ${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'gratP',this.innerText)">${fmtNum(r.gratP)}</td>
+                <td>${r.gratD > 0 ? fmtNum(r.gratD) : '-'}</td>
+                <td style="font-weight:600; color:var(--info)">${difG > 0 ? fmtNum(difG) : '-'}</td>
+                <td class="${alertF} ${editMode ? 'editable-active' : ''}" contenteditable="${editMode}" onblur="updateVal(${i},'ferP',this.innerText)">${fmtNum(r.ferP)}</td>
+                <td>${r.ferD > 0 ? fmtNum(r.ferD) : '-'}</td>
+                <td style="font-weight:600; color:var(--info)">${difF > 0 ? fmtNum(difF) : '-'}</td>
+                <td style="background:var(--row-hover); font-weight:bold">${fmtNum(difG + difF)}</td>`;
+            body.appendChild(tr);
+        });
+        calcularTotaisTodasAbas();
+    }
+
+    function updateVal(i, f, v) { 
+        dados[i][f] = parseV(v); 
+        dados[i].gratD = dados[i].gratP > 0 ? dados[i].gratP + dados[i].abono : 0;
+        dados[i].ferD = dados[i].ferP > 0 ? dados[i].ferP + (dados[i].abono/3) : 0;
+        renderApuracao(); renderCorrecao();
+    }
+
+    function toggleRow(i) { dados[i].hab = !dados[i].hab; renderApuracao(); renderCorrecao(); }
+    function toggleEdit() { editMode = !editMode; document.getElementById('btnEdit').classList.toggle('active', editMode); renderApuracao(); }
+    function toggleFilter() { filterAll = !filterAll; renderApuracao(); }
+
+    function processarIndices() {
+        const raw = document.getElementById('csvIndices').value.trim();
+        indicesMap = {};
+        
+        if (!raw) {
+            localStorage.removeItem('backupIndices');
+            return renderCorrecao();
+        }
+
+        raw.split('\n').forEach(linha => {
+            let cols = linha.split('\t');
+            if (cols.length >= 4) {
+                let normC = parseMesAnoIndex(cols[0].trim());
+                if (normC.match(/^\d{2}\/\d{4}$/)) {
+                    indicesMap[normC] = { cor: parseV(cols[1]), jur: parseV(cols[2]), sel: parseV(cols[3]) };
+                }
+            }
+        });
+        
+        // Salva os índices em cache para não precisar baixar no próximo acesso
+        localStorage.setItem('backupIndices', raw);
+        renderCorrecao();
+    }
+
+    async function carregarIndicesPlanilha(nomeAba, btnElement) {
+        const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR94jhhyuvlBxSLkhTSHfSJm5lDYxZUmbDIx5VB0TbbCo23rD4QcgG_Ft3Ii9yFnJ3LyKWjLtomgvqy/pub?output=tsv&single=true&gid=";
+        const urls = { 'EC113': baseUrl + '1468370044', 'EC136': baseUrl + '0' };
+        const targetUrl = urls[nomeAba];
+        const textoOriginal = btnElement.innerHTML;
+
+        const proxies = [
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+        ];
+
+        btnElement.innerHTML = '⏳ Conectando...';
+        btnElement.disabled = true;
+        document.getElementById('csvIndices').value = 'Tentando conectar à nuvem... (pode levar uns segundos na primeira vez)';
+
+        let sucesso = false;
+        for (let i = 0; i < proxies.length; i++) {
+            try {
+                const response = await fetch(proxies[i]);
+                if (!response.ok) throw new Error("Erro no proxy " + (i+1));
+                const texto = await response.text();
+                if (texto.trim().startsWith('<html') || texto.trim().startsWith('<!DOCTYPE')) throw new Error("Retornou HTML.");
+                
+                // VALIDAÇÃO ESTRUTURAL
+                const primeiraLinha = texto.split('\n')[0].toLowerCase();
+                const numColunas = primeiraLinha.split('\t').length;
+                
+                if (numColunas < 4 || (!primeiraLinha.includes('mês') && !primeiraLinha.includes('ano'))) {
+                    alert(`⚠️ Aviso Amigável: A planilha "${nomeAba}" foi importada, mas a estrutura das colunas parece diferente do padrão esperado (foram encontradas ${numColunas} colunas). \n\nSe alguém alterou a ordem no Google Sheets, o cálculo pode falhar. Verifique os valores gerados na tabela!`);
+                }
+
+                document.getElementById('csvIndices').value = texto;
+                processarIndices();
+                sucesso = true;
+                break; 
+            } catch (error) { console.warn(`Tentativa ${i+1} falhou.`); }
+        }
+
+        if (!sucesso) {
+            alert(`Falha ao baixar os dados da aba ${nomeAba}.\n\nO Firewall da sua rede de internet bloqueou a comunicação.\n\nCole os índices manualmente.`);
+            document.getElementById('csvIndices').value = '';
+        }
+
+        btnElement.innerHTML = textoOriginal;
+        btnElement.disabled = false;
+    }
+
+    function renderCorrecao() {
+        const body = document.getElementById('tableCorrecaoBody');
+        body.innerHTML = '';
+        let showPago = document.getElementById('chkPagamento').checked;
+        document.querySelectorAll('.col-pago').forEach(el => el.style.display = showPago ? 'table-cell' : 'none');
+        
+        dados.forEach((r, i) => {
+            let totalHist = (r.gratP > 0 ? r.abono : 0) + (r.ferP > 0 ? r.abono/3 : 0);
+            if (!r.hab || (!filterAll && totalHist === 0)) return;
+            
+            let idx = indicesMap[r.c] || { cor: 1.0, jur: 0, sel: 0 };
+            let base = totalHist - (r.pagoVal || 0);
+            if(base < 0) base = 0;
+
+            let principalCorrigido = base * idx.cor;
+            let valJurosMora = principalCorrigido * (idx.jur / 100);
+            let baseSelic = (idx.jur > 0) ? (principalCorrigido + valJurosMora) : principalCorrigido;
+            let valSelic = baseSelic * (idx.sel / 100);
+            
+            r.principalCorrigido = principalCorrigido;
+            r.valJurosMora = valJurosMora;
+            r.valSelic = valSelic;
+            r.totalAtualizado = principalCorrigido + valJurosMora + valSelic;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td style="text-align:center">${r.c}</td><td>${fmtNum(totalHist)}</td><td class="col-pago"><span class="editable-active" contenteditable="true" onblur="dados[${i}].pagoVal=parseV(this.innerText);renderCorrecao()">${fmtNum(r.pagoVal)}</span></td><td>${fmtNum(base)}</td><td>${fmtIdx(idx.cor)}</td><td>${fmtNum(principalCorrigido)}</td><td>${fmtNum(idx.jur)}%</td><td>${fmtNum(idx.sel)}%</td><td style="font-weight:bold">${fmtNum(r.totalAtualizado)}</td>`;
+            body.appendChild(tr);
+        });
+        calcularTotaisTodasAbas();
+    }
+
+    function calcularTotaisTodasAbas() {
+        let h = 0, ea = 0, ex = 0;
+        let totBrutoAtu = 0, totPrincipalAtu = 0, totJurosMoraAtu = 0, totSelicAtu = 0;
+
+        dados.filter(d => d.hab).forEach(d => {
+            let t = (d.gratP > 0 ? d.abono : 0) + (d.ferP > 0 ? d.abono/3 : 0);
+            h += t; 
+            if(t > 0){ if(parseInt(d.c.split('/')[1]) < 2026) ea++; else ex++; }
+            if(d.totalAtualizado) {
+                totBrutoAtu += d.totalAtualizado; totPrincipalAtu += d.principalCorrigido;
+                totJurosMoraAtu += d.valJurosMora; totSelicAtu += d.valSelic;
+            }
+        });
+
+        let hc = parseV(document.getElementById('honContratuais').value);
+        let hs = parseV(document.getElementById('honSucumbencia').value);
+        let fatorParte = (1 - hc/100); let fatorContrato = (hc/100); let fatorSucumb = (hs/100);
+
+        document.getElementById('resBruto').innerText = fmtMoeda(h);
+        document.getElementById('resBrutoAtu').innerText = fmtMoeda(totBrutoAtu);
+        
+        document.getElementById('resParteTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorParte);
+        document.getElementById('resPartePrin').innerText = fmtMoeda(totPrincipalAtu * fatorParte);
+        document.getElementById('resParteJur').innerText = fmtMoeda(totJurosMoraAtu * fatorParte);
+        document.getElementById('resParteSelic').innerText = fmtMoeda(totSelicAtu * fatorParte);
+        document.getElementById('resPercParte').innerText = (100 - hc).toFixed(1).replace('.0', '');
+
+        document.getElementById('resContratoTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorContrato);
+        document.getElementById('resContratoPrin').innerText = fmtMoeda(totPrincipalAtu * fatorContrato);
+        document.getElementById('resContratoJur').innerText = fmtMoeda(totJurosMoraAtu * fatorContrato);
+        document.getElementById('resContratoSelic').innerText = fmtMoeda(totSelicAtu * fatorContrato);
+        document.getElementById('resPercContrato').innerText = hc;
+
+        const secSucumbencia = document.getElementById('secSucumbencia');
+        if (hs > 0) {
+            secSucumbencia.style.display = 'block';
+            document.getElementById('resSucumbTotalAtu').innerText = fmtMoeda(totBrutoAtu * fatorSucumb);
+            document.getElementById('resSucumbPrin').innerText = fmtMoeda(totPrincipalAtu * fatorSucumb);
+            document.getElementById('resSucumbJur').innerText = fmtMoeda(totJurosMoraAtu * fatorSucumb);
+            document.getElementById('resSucumbSelic').innerText = fmtMoeda(totSelicAtu * fatorSucumb);
+            document.getElementById('resPercSucumb').innerText = hs;
+        } else {
+            secSucumbencia.style.display = 'none';
+        }
+        
+        document.getElementById('statsBox').innerHTML = `• Exercícios Anteriores (até 2025): <strong>${ea}</strong> | • Exercício Atual (2026): <strong>${ex}</strong>`;
+    }
+
+    function salvarProjeto() {
+        const p = { 
+            meta: { 
+                proc: document.getElementById('procNumero').value, aut: document.getElementById('procAutor').value, 
+                cls: document.getElementById('procClasse').value, reu: document.getElementById('procReu').value, 
+                ass: document.getElementById('procAssunto').value, aju: document.getElementById('dataAjuizamento').value, 
+                cit: document.getElementById('dataCitacao').value, date: document.getElementById('dataGeracao').value,
+                honCont: document.getElementById('honContratuais').value,
+                honSuc: document.getElementById('honSucumbencia').value, 
+                presc: document.getElementById('prescricaoToggle').value 
+            }, d: dados, idx: indicesMap 
+        };
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(p)], {type: 'application/json'})); 
+        a.download = `Calculo_${p.meta.aut || 'calculo'}.json`; 
+        a.click();
+    }
+
+    function processarArquivoJSON(file) {
+        const r = new FileReader();
+        r.onload = (e) => {
+            try {
+                const j = JSON.parse(e.target.result);
+                if (j.meta) {
+                    if (document.getElementById('procNumero')) document.getElementById('procNumero').value = j.meta.proc || '';
+                    if (document.getElementById('procAutor')) document.getElementById('procAutor').value = j.meta.aut || '';
+                    if (document.getElementById('procClasse')) document.getElementById('procClasse').value = j.meta.cls || '';
+                    if (document.getElementById('procReu')) document.getElementById('procReu').value = j.meta.reu || '';
+                    if (document.getElementById('procAssunto')) document.getElementById('procAssunto').value = j.meta.ass || '';
+                    if (document.getElementById('dataAjuizamento')) document.getElementById('dataAjuizamento').value = j.meta.aju || '';
+                    if (document.getElementById('dataCitacao')) document.getElementById('dataCitacao').value = j.meta.cit || '';
+                    if (document.getElementById('dataGeracao') && j.meta.date) document.getElementById('dataGeracao').value = j.meta.date;
+                    
+                    if (j.meta.honCont) document.getElementById('honContratuais').value = j.meta.honCont;
+                    if (j.meta.honSuc) document.getElementById('honSucumbencia').value = j.meta.honSuc;
+                    if (j.meta.presc) document.getElementById('prescricaoToggle').value = j.meta.presc;
+                }
+                
+                dados = j.d || []; 
+                indicesMap = j.idx || {};
+                
+                if (Object.keys(indicesMap).length > 0) {
+                    let rawIdx = "Mês/Ano\tCorreção Monetária\t% Juros de mora\t% SELIC\n";
+                    for (let key in indicesMap) {
+                        rawIdx += `${key}\t${fmtIdx(indicesMap[key].cor)}\t${fmtNum(indicesMap[key].jur)}\t${fmtNum(indicesMap[key].sel)}\n`;
+                    }
+                    document.getElementById('csvIndices').value = rawIdx;
+                    localStorage.setItem('backupIndices', rawIdx);
+                }
+
+                renderApuracao(); 
+                renderCorrecao();
+                geraParams();
+            } catch (error) {
+                alert("Erro ao ler o arquivo. O projeto pode estar corrompido ou não é um JSON válido.");
+                console.error(error);
+            }
+        };
+        r.readAsText(file);
+    }
+
+    function carregarDoInput(inputElement) {
+        const file = inputElement.files[0];
+        if (!file) return;
+        processarArquivoJSON(file);
+        inputElement.value = '';
+    }
+
+    const dragOverlay = document.getElementById('dragOverlay');
+
+    window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.types.includes("Files")) {
+            dragOverlay.classList.add('active');
+        }
+    });
+
+    window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (e.clientX === 0 && e.clientY === 0) {
+            dragOverlay.classList.remove('active');
+        }
+    });
+
+    window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragOverlay.classList.remove('active');
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.json')) {
+                processarArquivoJSON(file);
+            } else {
+                alert('Formato inválido! Por favor, arraste e solte apenas os arquivos de projeto (.json) gerados pelo sistema.');
+            }
+        }
+    });
+
+    function imprimir(t) {
+        const h = document.getElementById('print-content');
+        let html = '';
+        const c = [
+            {l: 'Processo:', v: document.getElementById('procNumero').value}, 
+            {l: 'Classe:', v: document.getElementById('procClasse').value}, 
+            {l: 'Parte Autora:', v: document.getElementById('procAutor').value}, 
+            {l: 'Réu:', v: document.getElementById('procReu').value}, 
+            {l: 'Assunto:', v: document.getElementById('procAssunto').value, mt: '15px'}
+        ];
+        
+        c.forEach(i => { 
+            if(i.v.trim()) {
+                let extraStyle = i.mt ? `margin-top: ${i.mt};` : '';
+                html += `<p style="margin:4px 0; ${extraStyle}"><strong>${i.l}</strong> ${i.v}</p>`; 
+            }
+        });
+        h.innerHTML = html;
+        
+        document.getElementById('pageBody').className = (t === 'classico' ? 'theme-classic' : (t === 'salmao' ? 'theme-salmon' : 'theme-sistema'));
+        window.print();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setInitialDate();
+        geraParams();
+
+        const indicesSalvos = localStorage.getItem('backupIndices');
+        if (indicesSalvos) {
+            document.getElementById('csvIndices').value = indicesSalvos;
+            processarIndices();
+        }
+    });
+</script>
+</body>
+</html>
